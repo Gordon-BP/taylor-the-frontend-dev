@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "website-builder-llm"
+version = "0.0.1"
+description = "Uses langchain to build a website"
+authors = ["Gordy"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "website_builder_llm"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+langchain = "^0.0.239"
+wikipedia = "^1.4.0"
+gradio = "^3.38.0"
+duckduckgo-search = "^3.8.4"
+openai = "^0.27.8"
+pygithub = "^1.59.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
