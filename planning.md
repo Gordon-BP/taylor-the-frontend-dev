@@ -9,20 +9,20 @@ I need a website for my small business, Hanakano Consulting LLC. However, I don'
 Build an LLM to write the website for me!
 
 ## But How?
-1. Create a github app for the LLM, and add it to my website repo
-    * Consider uing StarCoder as the LLM
-2. Build a nice little postgresql database and fill it with documentation for:
-    * [Next.js](https://github.com/vercel/next.js/tree/canary/docs)
-    * [Tailwind CSS](https://github.com/tailwindlabs/tailwindcss.com/tree/master/src/pages/docs)
+[x] Create a github app for the LLM, and add it to my website repo 
+    * Consider using StarCoder as the LLM. But hosted how?
+[ ] Build a nice little postgresql database and fill it with documentation for:
+    * [Next.js](https://github.com/vercel/next.js/tree/canary/docs) ✅
+    * [Tailwind CSS](https://github.com/tailwindlabs/tailwindcss.com/tree/master/src/pages/docs) ✅
     * Consider implmenting [PGEmbedding](https://python.langchain.com/docs/modules/data_connection/vectorstores/integrations/pgembedding) for faster retrieval times
-    * Consider free tier of [Neon](https://neon.tech)
-3. Add tools:
+    * Consider free tier of [Neon](https://neon.tech) ✅
+[ ] Add tools:
     * [Github](https://python.langchain.com/docs/modules/agents/toolkits/github)
     * [Vectorstore Agent](https://python.langchain.com/docs/modules/agents/toolkits/vectorstore)
     * [DDG Search](https://python.langchain.com/docs/modules/agents/tools/integrations/ddg)
-4. Dockerize and host the agent
+[ ] Dockerize and host the agent
     * Consider [AWS EC2 Free Tier](https://aws.amazon.com/ec2/pricing/?p=ft&c=containers&z=3)
-5. Begin making issues on the website github repo and watch the LLM get to work!
+[ ] Begin making issues on the website github repo and watch the LLM get to work!
 
 ## Questions to answer before starting:
 1. What kind of website do you want? Create scope and exact details
