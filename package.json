@@ -1,0 +1,26 @@
+{
+  "name": "taylor_jd",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gordon-BP/taylor-the-frontend-dev.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Gordon-BP/taylor-the-frontend-dev/issues"
+  },
+  "homepage": "https://github.com/Gordon-BP/taylor-the-frontend-dev#readme",
+  "devDependencies": {
+    "typescript": "^5.1.6"
+  },
+  "dependencies": {
+    "langchain": "^0.0.121"
+  }
+}
