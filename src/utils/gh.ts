@@ -1,37 +1,49 @@
 import { spawn } from "child_process";
 import { Writable } from "stream";
+import { LogLevel, TaskLogger } from "./logger";
 /**
  * Utility class for interacting with Github and setting up the environment
  */
-class GithubUtils {
+export class GithubUtils {
   constructor() {
     // Perform the check for GitHub CLI installation during object initialization
     this.checkGithubCliInstallation();
   }
-
+  logger = new TaskLogger(LogLevel.INFO);
   /**
    * Checks the GitHub CLI installation and logs the result to the console.
    * If the GitHub CLI is installed, it will print "GitHub CLI is installed."
    * If the GitHub CLI is not installed, it will print "GitHub CLI is not installed."
    */
   private async checkGithubCliInstallation(): Promise<void> {
+    this.logger
+      .forTask("Git-install-check")
+      .debug("Checking Github installation...");
     try {
       const isInstalled = await new Promise((resolve) => {
         const childProcess = spawn("gh", ["--version"]);
-        childProcess.on("error", () => {
+        childProcess.on("error", (error) => {
+          this.logger
+            .forTask("Git-install-check")
+            .error(`Error with Github installation:\n${error}`);
           resolve(false);
         });
         childProcess.on("exit", (code) => {
+          this.logger
+            .forTask("Git-install-check")
+            .debug("Github installation OK!");
           resolve(code === 0);
         });
       });
       if (isInstalled) {
-        console.log("GitHub CLI is installed ✅");
+        this.logger.forTask("Git-install-check").info("Github is installed");
       } else {
         throw new Error("GitHub CLI is not installed.");
       }
     } catch (error) {
-      console.error("Error checking GitHub CLI installation:", error);
+      this.logger
+        .forTask("Git-install-check")
+        .error(`Error with Github: ${error}`);
     }
   }
   /**
@@ -55,10 +67,15 @@ class GithubUtils {
   public async getIssuesFromRepo({
     owner,
     repo,
+    taskId,
   }: {
     owner: string;
     repo: string;
+    taskId: string;
   }): Promise<any[]> {
+    this.logger
+      .forTask(taskId)
+      .info(`Fetching issues from ${owner}/${repo}...`);
     return new Promise((resolve, reject) => {
       const childProcess = spawn("gh", [
         "issue",
@@ -76,6 +93,9 @@ class GithubUtils {
       childProcess.stdout.pipe(writableStream);
 
       childProcess.on("error", (error) => {
+        this.logger
+          .forTask(taskId)
+          .error(`Error etching issues from ${owner}/${repo}:\n${error}`);
         reject(error);
       });
 
@@ -84,6 +104,7 @@ class GithubUtils {
           try {
             const outputData = Buffer.concat(chunks).toString();
             const issues = JSON.parse(outputData);
+            this.logger.forTask(taskId).info(`Successfully fetched issues!`);
             resolve(issues);
           } catch (parseError) {
             reject(parseError);
