@@ -1,34 +1,36 @@
-import { spawn } from "child_process";
+import { ChildProcess, spawn } from "child_process";
+import { promisify } from 'util';
+import { existsSync } from 'fs';
 import { Writable } from "stream";
 import { LogLevel, TaskLogger } from "./logger";
+const execAsync = promisify(require('child_process').exec);
 /**
  * Utility class for interacting with Github and setting up the environment
  */
 export class GithubUtils {
-  constructor() {
-    // Perform the check for GitHub CLI installation during object initialization
-    this.checkGithubCliInstallation();
-  }
+   constructor(){}
   logger = new TaskLogger(LogLevel.INFO);
   /**
    * Checks the GitHub CLI installation and logs the result to the console.
    * If the GitHub CLI is installed, it will print "GitHub CLI is installed."
    * If the GitHub CLI is not installed, it will print "GitHub CLI is not installed."
+   * @param {ChildProcess} process - the child process in which to check GitHub installation.
    */
-  private async checkGithubCliInstallation(): Promise<void> {
+  public async checkGithubCliInstallation({process}:{process:ChildProcess}): Promise<void> {
     this.logger
       .forTask("Git-install-check")
       .debug("Checking Github installation...");
     try {
       const isInstalled = await new Promise((resolve) => {
-        const childProcess = spawn("gh", ["--version"]);
-        childProcess.on("error", (error) => {
+        process.stdin!.write("gh --version");
+        process.stdin!.end();
+        process.once("error", (error) => {
           this.logger
             .forTask("Git-install-check")
             .error(`Error with Github installation:\n${error}`);
           resolve(false);
         });
-        childProcess.on("exit", (code) => {
+        process.once("exit", (code) => {
           this.logger
             .forTask("Git-install-check")
             .debug("Github installation OK!");
@@ -52,6 +54,7 @@ export class GithubUtils {
    * @param {string} repo - The repository name.
    * @param {taskId} taskId - The task uuid.
    * @param {limit} limit - The maximum number of issues to fetch. 20 by default.
+   * @param {ChildProcess} process - The child process in which to run.
    * @returns {Promise<any[]>} A Promise that resolves to an array of issues in JSON format.
    * @example
    * const github = new GithubUtils();
@@ -72,45 +75,43 @@ export class GithubUtils {
     owner,
     repo,
     taskId,
-    limit = 20
+    limit = 20,
+    process
   }: {
     owner: string;
     repo: string;
     taskId: string;
     limit: number;
+    process: ChildProcess
   }): Promise<any[]> {
     this.logger
       .forTask(taskId)
       .info(`Fetching issues from ${owner}/${repo}...`);
     return new Promise((resolve, reject) => {
-      const childProcess = spawn("gh", [
-        "issue",
-        "list",
-        "--limit",
-        limit.toString(),
-        "--json",
-        `{"owner": "${owner}", "repo": "${repo}"}`,
-      ]);
+      process.stdin!.write(`gh issue list --limit ${limit} --json "assignees,body,comments,createdAt,id,labels,number,state,title,updatedAt"`);
+      process.stdin!.end();
       const chunks: any[] = [];
       const writableStream = new Writable({
         write(chunk, encoding, next) {
+          console.log(chunk)
           chunks.push(chunk);
           next();
         },
       });
-      childProcess.stdout.pipe(writableStream);
-
-      childProcess.on("error", (error) => {
+      process.stdout?.pipe(writableStream);
+      
+      process.once("error", (error) => {
         this.logger
           .forTask(taskId)
           .error(`Error etching issues from ${owner}/${repo}:\n${error}`);
         reject(error);
       });
 
-      childProcess.on("exit", (code) => {
+      process.once("exit", (code) => {
+        const outputData = Buffer.concat(chunks).toString();
+        this.logger.forTask(taskId).info(outputData)
         if (code === 0) {
           try {
-            const outputData = Buffer.concat(chunks).toString();
             const issues = JSON.parse(outputData);
             this.logger.forTask(taskId).info(`Successfully fetched issues!`);
             resolve(issues);
@@ -120,7 +121,7 @@ export class GithubUtils {
         } else {
           reject(
             new Error(
-              `Failed to fetch issues from the repository. Exit code: ${code}`,
+              `Failed to fetch issues from the repository.\n${outputData}`,
             ),
           );
         }
@@ -128,11 +129,14 @@ export class GithubUtils {
     });
   }
   /**
-   * Creates a new branch on a GitHub repository using the GitHub CLI.
+   * Creates a new branch on a GitHub repository and then clones it as a worktree to the local
+   * disk. Branches are saved to repos/owner/repo-branchName
    * @param {string} owner - The owner of the repository.
    * @param {string} repo - The repository name.
+   * @param {string} baseBranch - The repository base branch name. Defaults to "main".
    * @param {string} branchName - The name of the new branch.
    * @param {string} taskId - The task uuid.
+   * @param {ChildProcess} process - The child process in which to run this
    * @returns {Promise<void>} A Promise that resolves when the branch is successfully created.
    * @example
    * const github = new GithubUtils();
@@ -151,30 +155,33 @@ export class GithubUtils {
   public async createBranch({
     owner,
     repo,
+    baseBranch = "main",
     branchName,
-    taskId
+    taskId,
+    process
   }: {
     owner: string;
     repo: string;
+    baseBranch: string
     branchName: string;
     taskId: string;
+    process: ChildProcess
   }): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.logger.forTask(taskId).info(`Creating branch ${branchName} on ${owner}/${repo}...`);
-      const childProcess = spawn("gh", [
-        "repo",
-        "create",
-        `${owner}/${repo}`,
-        "--branch",
-        branchName,
-      ]);
-
-      childProcess.on("error", (error) => {
+    return new Promise(async (resolve, reject) => {
+      const workDir = `./repos/${owner}/${repo}`
+      this.logger.forTask(taskId).info(`Checking for repo on local disk..`);
+      if (!existsSync(`workDir/${baseBranch}`)) {
+        this.logger.forTask(taskId).info(`Repo has not been cloned to disk. Cloning...`)
+        await this.cloneRepo({owner:owner, repo:repo, baseBranch:baseBranch,taskId:taskId})
+      }
+      this.logger.forTask(taskId).info(`Creating branch ${branchName} on ${owner}/${repo}/${branchName}...`);
+      process.stdin!.write(`cd ${workDir}/main && git worktree add -b ${branchName} ../${branchName}`)
+      process.stdin!.end();
+      process.once("error", (error) => {
         this.logger.forTask(taskId).error(`Error creating branch`);
         reject(error);
       });
-
-      childProcess.on("exit", (code) => {
+      process.once("exit", (code) => {
         if (code === 0) {
           this.logger.forTask(taskId).info(`Branch ${branchName} on ${owner}/${repo} successfully created`);
           resolve();
@@ -183,5 +190,89 @@ export class GithubUtils {
         }
       });
     });
+  }
+  /**
+   * Clones a Github reo to the working directory.
+   * @param {string} owner - The owner of the repository.
+   * @param {string} repo - The repository name.
+   * @param {string} taskId - The task uuid.
+   * @returns {Promise<void>} A Promise that resolves when the branch is successfully created.
+   * @example
+   * 
+   */
+  public async cloneRepo({
+    owner,
+    repo,
+    baseBranch='main',
+    taskId
+  }: {
+    owner: string;
+    repo: string;
+    baseBranch:string;
+    taskId: string;
+  }): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.logger.forTask(taskId).info(`Cloning ${owner}/${repo} to working dir...`);
+      process.stdin!.write(`cd ./repos && git clone https://github.com/${owner}/${repo} ${owner}/${repo}/${baseBranch}`)
+      process.stdin!.end();
+      process.once("error", (error) => {
+        this.logger.forTask(taskId).error(`Error creating branch`);
+        reject(error);
+      });
+
+      process.once("exit", (code) => {
+        if (code === 0) {
+          this.logger.forTask(taskId).info(`Branch on ${owner}/${repo} successfully created`);
+          resolve();
+        } else {
+          reject(new Error(`Failed to create the branch. Exit code: ${code}`));
+        }
+      });
+    });
+  }
+  public async commit(message: string, taskId:string, process:ChildProcess):Promise<void>{
+    return new Promise(async (resolve, reject) =>{
+        await this.checkGitRepository(process);
+         // Run 'git add .' to stage all changes for commit
+         process.stdin!.write('git add .\n');
+         process.stdin!.write(`git commit -a -m "${message}"\n`);
+         process.stdin!.end(); // Signal the end of input
+
+        process.once('exit', (code) => {
+             if (code !== 0) {
+               throw new Error('Error staging changes for commit.');
+             }
+             resolve()
+           });
+           process.once("error", (error) => {
+            this.logger.forTask(taskId).error(`Error creating branch`);
+            reject(error);
+          });
+});
+}
+    
+      private async checkGitRepository(process: ChildProcess): Promise<void> {
+        // Run 'git rev-parse --is-inside-work-tree' to check if the current directory is a Git repository
+        process.stdin!.write('git rev-parse --is-inside-work-tree\n');
+        process.stdin!.end(); // Signal the end of input
+        await new Promise<void>((resolve) => {
+          process.once('exit', (code) => {
+            if (code !== 0) {
+              throw new Error('Current directory is not a Git repository.');
+            }
+            resolve();
+          });
+        });
+      }
+    
+
+    
+  public async createPR(
+   baseBranch:string, branchName:string, title:string, body:string, process:ChildProcess
+  ):Promise<void>{
+    process.stdin!.write(`
+    cd ../${baseBranch} && 
+    gh push -u ../${branchName} && 
+    gh pr create --base ${baseBranch} --head ${branchName} --title ${title} --body ${body}`)
   }
 }

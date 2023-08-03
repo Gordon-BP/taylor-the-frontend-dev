@@ -5,7 +5,7 @@
       "outDir": "build",
       "strict": true
     },
-    "include": ["src"],
+    "include": ["src","tests"],
     "scripts": {
       "build": "tsc"
       }
