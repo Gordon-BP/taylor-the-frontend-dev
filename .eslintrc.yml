@@ -1,0 +1,28 @@
+root: true
+env:
+  node: true
+  es6: true
+extends:
+  - "plugin:@typescript-eslint/recommended"
+  - "plugin:prettier/recommended"
+parser: "@typescript-eslint/parser"
+parserOptions:
+  project: "./tsconfig.json"
+plugins:
+  - "@typescript-eslint"
+  - "prettier"
+rules:
+  no-eval: error
+  no-debugger: error
+  no-console: error
+  no-var: error
+  no-unsafe-finally: error
+  prefer-const: error
+  prefer-rest-params: error
+  prefer-spread: error
+  no-duplicate-imports: off
+  "@typescript-eslint/prefer-interface": off
+  "@typescript-eslint/no-explicit-any": off
+  "@typescript-eslint/no-non-null-assertion": off
+  "@typescript-eslint/no-empty-function": off
+  "@typescript-eslint/explicit-module-boundary-types": off
