@@ -1,6 +1,3 @@
-/**
- * The log levels supported by the TaskLogger.
- */
 export var LogLevel;
 (function (LogLevel) {
     LogLevel["DEBUG"] = "DEBUG";
@@ -8,23 +5,13 @@ export var LogLevel;
     LogLevel["WARNING"] = "WARNING";
     LogLevel["ERROR"] = "ERROR";
 })(LogLevel || (LogLevel = {}));
-const levels = {
-    debug: LogLevel.DEBUG,
-    error: LogLevel.ERROR,
-    warning: LogLevel.WARNING,
-    info: LogLevel.INFO,
-};
-/**
- * Custom logger for tasks with different log levels.
- */
 export default class TaskLogger {
     /**
-     * Creates a new TaskLogger instance with the specified log level and task ID.
-     * @param {LogLevel | string} logLevel - The minimum log level to display.
-     * @param {string | null} taskId - The ID of the task to associate with the logger (optional).
-     * @example
-     * const logger = new TaskLogger(LogLevel.DEBUG, "my-task")
-     * logger.info("Starting Task...")
+     * Builds a new task logger
+     * @param {Object} args - Named arguments
+     * @param {LogLevel | string} args.logLevel - what level to log things at
+     * @param {string} args.taskId - optional task uuid
+     * @memberof TaskLogger
      */
     constructor({ logLevel = LogLevel.INFO, taskId = null, }) {
         this.logLevelPriority = {
@@ -32,6 +19,12 @@ export default class TaskLogger {
             [LogLevel.INFO]: 2,
             [LogLevel.WARNING]: 3,
             [LogLevel.ERROR]: 4,
+        };
+        const levels = {
+            debug: LogLevel.DEBUG,
+            error: LogLevel.ERROR,
+            warning: LogLevel.WARNING,
+            info: LogLevel.INFO,
         };
         if (typeof logLevel == "string") {
             logLevel = levels[logLevel.toUpperCase()];
@@ -43,6 +36,7 @@ export default class TaskLogger {
     }
     /**
      * Gets the log message prefix based on the log level and task ID.
+     *
      * @param {LogLevel} level - The log level for the log message.
      * @returns {string} The log message prefix.
      * @private
@@ -118,6 +112,7 @@ export default class TaskLogger {
      * Creates a new TaskLogger instance for a specific task with the provided task ID.
      * @param {string} taskId - The ID of the task to associate with the logger.
      * @returns {TaskLogger} A new TaskLogger instance for the specified task ID.
+     * @memberof TaskLogger
      * @example
      * const logger = new TaskLogger()
      * logger.forTask("myTask").info("Task started!")

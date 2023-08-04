@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "tsc && node ./build/index.js",
     "test": "jest",
+    "build_docs": "node_modules/.bin/jsdoc -r src/App.ts -c jsdoc.conf.json",
     "lint_core": "eslint --ext .ts src/ --fix  ",
     "lint_tests": "eslint --ext .ts tests/ --fix  ",
     "spellcheck": "cspell \"src/**/*.ts\" && cspell \"tests/**/*.ts\""
@@ -41,6 +42,7 @@
     "@types/uuid": "^9.0.2",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "babel-jest": "^29.6.2",
+    "better-docs": "^2.7.2",
     "cspell": "^6.31.2",
     "eslint": "^8.46.0",
     "eslint-config-prettier": "^8.9.0",
@@ -50,10 +52,12 @@
     "eslint-plugin-prettier": "^5.0.0",
     "eslint-plugin-promise": "^6.1.1",
     "jest": "^29.6.2",
+    "jsdoc": "^3.5.5",
     "prettier": "3.0.0",
     "typescript": "^5.1.6"
   },
   "dependencies": {
+    "body-parser": "^1.20.2",
     "express": "^4.18.2",
     "langchain": "^0.0.121"
   },
