@@ -9,7 +9,7 @@ export function validateCloneReq(req: Request, res: Response, next: NextFunction
     const missing_fields = ["owner", "repo", "baseBranch"].filter(field =>{
         !req.body[field]
     });
-    if(missing_fields){
+    if(missing_fields.length != 0){
         return res.status(400).json({ error: 'Missing required fields', missing_fields });
     } else{
         next()
@@ -22,7 +22,6 @@ export function validateCloneReq(req: Request, res: Response, next: NextFunction
 export function validateBranchReq(req: Request, res: Response, next: NextFunction):Response<any> | void {
     var missing_fields:Array<string> = []
     //check params
-    console.log(req.body)
     missing_fields = missing_fields.concat(["owner", "repo"].filter(field =>{
         req.params[field]
     }));

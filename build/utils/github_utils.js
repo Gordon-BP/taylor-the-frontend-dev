@@ -71,6 +71,20 @@ export default class GithubUtils {
         });
     }
     /**
+     * Helper function to promiseify spawn() and chain multiple commands
+     * @param {SpawnCommands} commandArgs - the command with args to run
+     * @returns {Promise<number | Error>}
+     */
+    spawnAsync(commandArgs) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve, reject) => {
+                const proc = spawn(commandArgs.command, commandArgs.args, commandArgs.options);
+                proc.once('error', err => reject(err));
+                proc.once('exit', code => resolve(code));
+            });
+        });
+    }
+    /**
      * Gets issues from a GitHub repository using the GitHub CLI.
      * @param {Object} args - The named arguments for this function
      * @param {string} args.owner - The owner of the repository.
@@ -188,7 +202,7 @@ export default class GithubUtils {
                 this.logger
                     .forTask(taskId)
                     .info(`Creating new branch ${branchName} on ${owner}/${repo}/${branchName}...`);
-                const gitProcess = spawn("git", ["worktree", "add", "-b", branchName, `../${branchName}`], { stdio: 'inherit', cwd: workDir });
+                const gitProcess = spawn("git", ["worktree", "add", "-b", branchName, `../${branchName}`], { stdio: 'inherit', cwd: `${workDir}/${baseBranch}` });
                 gitProcess.once("error", (error) => {
                     this.logger.forTask(taskId).error(`Error creating branch`);
                     return reject(error);
@@ -260,41 +274,72 @@ export default class GithubUtils {
     }
     /**
      * Commits changes from local repo to the branch
-     * @param {string} dir - The working directory, typically ./repos/:owner/:repo/:branch
-     * @param {string} message - Commit message
-     * @param {string} taskId - The task Id
-     * @param} gitProcess - The child gitProcesses to run it in
-     * @returns
+     * @param {Object} args - names arguments
+     * @param {string} args.dir - The working directory, typically ./repos/:owner/:repo/:branch
+     * @param {string} args.message - Commit message
+     * @param {string} args.taskId - The task Id
+     * @returns {Promise<boolean>} - True is the commit is successful
      */
-    commit(dir, message, taskId, gitProcess) {
+    commit({ dir, message, taskId }) {
         return __awaiter(this, void 0, void 0, function* () {
-            return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                const isRepo = yield this.checkGitRepository({
-                    dir: dir,
-                    taskId: taskId,
-                });
-                if (!isRepo) {
-                    this.logger
-                        .forTask(taskId)
-                        .error("gitProcess is not in a valid repo directory");
-                    resolve();
-                }
-                // stage commits
-                gitProcess.stdin.write("git add .\n");
-                // make the commits
-                gitProcess.stdin.write(`git commit -a -m "${message}"\n`);
-                gitProcess.stdin.end();
-                gitProcess.once("exit", (code) => {
-                    if (code !== 0) {
-                        throw new Error(`Error staging changes for commit. Exited with code ${code}`);
-                    }
-                    resolve();
-                });
-                gitProcess.once("error", (error) => {
-                    this.logger.forTask(taskId).error(`Error creating branch`);
-                    reject(error);
-                });
-            }));
+            try {
+                return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                    const isRepo = yield this.checkGitRepository({
+                        dir: dir,
+                        taskId: taskId,
+                    });
+                    if (!isRepo) {
+                        this.logger
+                            .forTask(taskId)
+                            .error("gitProcess is not in a valid repo directory");
+                        resolve(false);
+                    } /**
+                    const comms: SpawnCommands[]=[
+                      {
+                        command:"git",
+                        args:["remote", "add", "."],
+                        options:{stdio:'inherit', cwd:workDir}
+                      },
+                      {
+                        command:"git",
+                        args:["worktree", "add", "-b" ,branchName, `./${branchName}`],
+                        options:{stdio:'inherit', cwd:workDir}
+                      },
+                    ]*/
+                    const addProcess = spawn("git", ["add", "."]);
+                    addProcess.once("exit", (code) => {
+                        if (code == 0) {
+                            const commitProcess = spawn("git", ["commit", "-a", "-m", message]);
+                            commitProcess.once("exit", code => {
+                                if (code == 0) {
+                                    this.logger.forTask(taskId).info("Successfully committed changes!");
+                                    resolve(true);
+                                }
+                                else {
+                                    this.logger.forTask(taskId).error(`Changes not committed: Code ${code}`);
+                                    resolve(false);
+                                }
+                            });
+                            commitProcess.once("error", (error) => {
+                                this.logger.forTask(taskId).error(`Error committing changes: ${error}`);
+                                reject();
+                            });
+                        }
+                        else {
+                            this.logger.forTask(taskId).error(`Error staging changes: ${code}`);
+                            resolve(false);
+                        }
+                    });
+                    addProcess.once("error", (error) => {
+                        this.logger.forTask(taskId).error(`Error staging changes: ${error}`);
+                        reject();
+                    });
+                }));
+            }
+            catch (error) {
+                this.logger.forTask(taskId).error(`Error committing: ${error}`);
+                return new Promise((resolve, reject) => { reject(); });
+            }
         });
     }
     /**
@@ -308,23 +353,22 @@ export default class GithubUtils {
         return __awaiter(this, void 0, void 0, function* () {
             this.logger.forTask(taskId).debug(`Checking if ${dir} is a valid repo...`);
             try {
-                return new Promise((resolve, reject) => {
-                    const gitProcess = spawn("git", ["rev-parse", "--is-inside-work-tree"], { stdio: 'inherit', cwd: dir });
-                    gitProcess.once("error", (error) => {
-                        this.logger.forTask(taskId).error(`Error with local repo:\n${error}`);
-                        reject();
-                    });
-                    gitProcess.once("exit", (code) => {
-                        if (code == 0) {
-                            this.logger.forTask(taskId).info("Dir is a valid Github repo!");
-                            resolve(true);
-                        }
-                        else {
-                            this.logger.forTask(taskId).error(`Dir is NOT a valid Github repo!\nCode: ${code}`);
-                            resolve(false);
-                        }
-                    });
-                });
+                return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                    const comm = {
+                        command: "git",
+                        args: ["rev-parse", "--is-inside-work-tree"],
+                        options: { stdio: 'inherit', cwd: dir }
+                    };
+                    const code = yield this.spawnAsync(comm);
+                    if (code !== 0) {
+                        this.logger.forTask(taskId).error(`Cannot validate local repo:\nError code ${code}`);
+                        resolve(false);
+                    }
+                    else {
+                        this.logger.forTask(taskId).info(`${dir} is a valid Github repo!`);
+                        resolve(true);
+                    }
+                }));
             }
             catch (error) {
                 this.logger

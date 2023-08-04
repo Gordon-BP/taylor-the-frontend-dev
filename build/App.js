@@ -13,6 +13,7 @@ import * as v from "./utils/validators.js";
 import { v4 as uuid } from 'uuid';
 import TaskLogger from "./utils/logger.js";
 import bodyParser from "body-parser";
+import { open } from 'node:fs/promises';
 const logger = new TaskLogger({ logLevel: "info", taskId: null });
 class App {
     /**
@@ -42,13 +43,13 @@ class App {
             });
         });
         /**
-         * Status route / smoke signal
-         * @name get/status
+         * Clones a Github repo to the bot's directory
+         * @name post/clone
          * @function
          * @memberof module:App~mainRouter
          * @inner
          * @param {string} owner - the Github repo's owner
-         * @param {string} name - the repo name
+         * @param {string} repo - the repo name
          * @param {string} baseBranch - the base branch (typically main or master)
          */
         router.post('/clone', v.validateCloneReq, (req, res) => __awaiter(this, void 0, void 0, function* () {
@@ -72,7 +73,19 @@ class App {
                 return res.status(500);
             }
         }));
-        router.post('/:owner/:repo', v.validateBranchReq, (req, res) => __awaiter(this, void 0, void 0, function* () {
+        /**
+         * Makes a new branch on a local github repo.
+         * If the repo has not already been cloned, it is cloned automatically.
+         * @name post/branch
+         * @function
+         * @memberof module:App~mainRouter
+         * @inner
+         * @param {string} owner - the Github repo's owner
+         * @param {string} name - the repo name
+         * @param {string} baseBranch - the base branch (typically main or master)
+         * @param {string} branchName - name for the new branch
+         */
+        router.post('/:owner/:repo/branch', v.validateBranchReq, (req, res) => __awaiter(this, void 0, void 0, function* () {
             let { owner, repo } = req.params;
             let { branchName, baseBranch } = req.body;
             const taskId = uuid();
@@ -84,7 +97,6 @@ class App {
                 branchName: branchName,
                 taskId: taskId
             }).then(result => {
-                console.log(`Results is ${result}`);
                 if (result) {
                     res.status(200).json({
                         workDir: `./repos/${owner}/${repo}/${branchName}`
@@ -97,13 +109,74 @@ class App {
                 }
             }).catch(error => {
                 res.status(500).json({
-                    message: "oooh big time error"
+                    message: "oooh big time error making a new branch"
+                });
+            });
+        }));
+        /**
+         * Write file
+         * TODO: add validation middleware
+         */
+        router.post('/:owner/:repo/:branchName/writeFile', (req, res) => __awaiter(this, void 0, void 0, function* () {
+            const taskId = uuid();
+            const { owner, repo, branchName } = req.params;
+            const { filePath, data } = req.body;
+            const path = `./repos/${owner}/${repo}/${branchName}/${filePath}`;
+            open(path, "w").then((fd) => {
+                if (!fd) {
+                    console.log("Error opening file");
+                }
+                else {
+                    fd.writeFile(data);
+                    fd.close();
+                    console.log("File write successful");
+                    res.status(200).json({
+                        message: "File write successful"
+                    });
+                }
+            });
+        }));
+        /**
+         * Commits a change to
+         * @name post/commit
+         * @function
+         * @memberof module:App~mainRouter
+         * @inner
+         * @param {string} owner - the Github repo's owner
+         * @param {string} name - the repo name
+         * @param {string} branchName - the base branch (typically main or master)
+         * @param {string} message - the commit message
+         */
+        router.post('/:owner/:repo/:branchName/commit', (req, res) => __awaiter(this, void 0, void 0, function* () {
+            let { owner, repo, branchName } = req.params;
+            let { message } = req.body;
+            const taskId = uuid();
+            const github = new GithubUtils();
+            const dir = `./repos/${owner}/${repo}/${branchName}`;
+            github.commit({
+                dir: dir,
+                message: message,
+                taskId: taskId
+            }).then(result => {
+                if (result) {
+                    res.status(200).json({
+                        workDir: `./repos/${owner}/${repo}/${branchName}`
+                    });
+                }
+                else {
+                    res.status(500).json({
+                        message: "Commit failed"
+                    });
+                }
+            }).catch(error => {
+                res.status(500).json({
+                    message: "oooh big time error committing changes"
                 });
             });
         }));
         this.express.use('/', router);
         this.express.use('/docs', express.static("./docs"));
-    }
-}
+    } //close mountRoutes
+} //close App
 export default new App().express;
 //# sourceMappingURL=App.js.map
