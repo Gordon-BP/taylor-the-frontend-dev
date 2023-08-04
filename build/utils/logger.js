@@ -1,0 +1,134 @@
+/**
+ * The log levels supported by the TaskLogger.
+ */
+export var LogLevel;
+(function (LogLevel) {
+    LogLevel["DEBUG"] = "DEBUG";
+    LogLevel["INFO"] = "INFO";
+    LogLevel["WARNING"] = "WARNING";
+    LogLevel["ERROR"] = "ERROR";
+})(LogLevel || (LogLevel = {}));
+const levels = {
+    debug: LogLevel.DEBUG,
+    error: LogLevel.ERROR,
+    warning: LogLevel.WARNING,
+    info: LogLevel.INFO,
+};
+/**
+ * Custom logger for tasks with different log levels.
+ */
+export default class TaskLogger {
+    /**
+     * Creates a new TaskLogger instance with the specified log level and task ID.
+     * @param {LogLevel | string} logLevel - The minimum log level to display.
+     * @param {string | null} taskId - The ID of the task to associate with the logger (optional).
+     * @example
+     * const logger = new TaskLogger(LogLevel.DEBUG, "my-task")
+     * logger.info("Starting Task...")
+     */
+    constructor({ logLevel = LogLevel.INFO, taskId = null, }) {
+        this.logLevelPriority = {
+            [LogLevel.DEBUG]: 1,
+            [LogLevel.INFO]: 2,
+            [LogLevel.WARNING]: 3,
+            [LogLevel.ERROR]: 4,
+        };
+        if (typeof logLevel == "string") {
+            logLevel = levels[logLevel.toUpperCase()];
+        }
+        else {
+            this.logLevel = logLevel;
+            this.taskId = taskId;
+        }
+    }
+    /**
+     * Gets the log message prefix based on the log level and task ID.
+     * @param {LogLevel} level - The log level for the log message.
+     * @returns {string} The log message prefix.
+     * @private
+     */
+    getLogPrefix(level) {
+        const timestamp = new Date().toISOString();
+        const taskInfo = this.taskId ? ` [Task ID: ${this.taskId}]` : "";
+        return `[${timestamp}] [${level.toUpperCase()}]${taskInfo}: `;
+    }
+    /**
+     * Checks if the log message should be logged based on its log level and the TaskLogger's log level.
+     * @param {LogLevel} level - The log level of the log message.
+     * @returns {boolean} True if the log message should be logged, otherwise false.
+     * @private
+     */
+    shouldLog(level) {
+        const levelKey = level.toUpperCase();
+        return this.logLevelPriority[level] >= this.logLevelPriority[levelKey];
+    }
+    /**
+     * Logs a debug message.
+     * @param {string} message - The debug message to log.
+     * @example
+     * const logger = new TaskLogger("debug", "my-task")
+     * logger.error("Class initialized, proceeding...")
+     */
+    debug(message) {
+        this.log(LogLevel.DEBUG, message);
+    }
+    /**
+     * Logs an info message.
+     * @param {string} message - The info message to log.
+     * @example
+     * const logger = new TaskLogger("my-task")
+     * logger.error("Starting task...")
+     */
+    info(message) {
+        this.log(LogLevel.INFO, message);
+    }
+    /**
+     * Logs a warning message.
+     * @param {string} message - The warning message to log.
+     * @example
+     * const logger = new TaskLogger(LogLevel.WARNING, "my-task")
+     * logger.error("You shouldn't do that")
+     */
+    warning(message) {
+        this.log(LogLevel.WARNING, message);
+    }
+    /**
+     * Logs an error message.
+     * @param {string} message - The error message to log.
+     * @example
+     * const logger = new TaskLogger(LogLevel.ERROR, "my-task")
+     * logger.error("An error happened!")
+     */
+    error(message) {
+        this.log(LogLevel.ERROR, message);
+    }
+    /**
+     * Logs a message with the specified log level and adds the task ID if available.
+     * @param {LogLevel} level - The log level of the log message.
+     * @param {string} message - The log message to be displayed.
+     * @private
+     */
+    log(level, message) {
+        if (this.shouldLog(level)) {
+            // eslint-disable-next-line no-console
+            console.log(this.getLogPrefix(level) + message);
+        }
+    }
+    /**
+     * Creates a new TaskLogger instance for a specific task with the provided task ID.
+     * @param {string} taskId - The ID of the task to associate with the logger.
+     * @returns {TaskLogger} A new TaskLogger instance for the specified task ID.
+     * @example
+     * const logger = new TaskLogger()
+     * logger.forTask("myTask").info("Task started!")
+     */
+    forTask(taskId) {
+        if (!taskId) {
+            throw new Error("Cannot make a logger for a task without a task ID!");
+        }
+        else {
+            return new TaskLogger({ logLevel: this.logLevel, taskId: taskId });
+        }
+    }
+}
+//# sourceMappingURL=logger.js.map

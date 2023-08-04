@@ -1,19 +1,33 @@
 {
-  "name": "taylor_jd",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "taylor_jd2",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "An AI software developer built in node.js",
+  "exports": null,
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsc && node ./build/index.js",
+    "test": "jest",
+    "lint_core": "eslint --ext .ts src/ --fix  ",
+    "lint_tests": "eslint --ext .ts tests/ --fix  ",
     "spellcheck": "cspell \"src/**/*.ts\" && cspell \"tests/**/*.ts\""
+  },
+  "scopes": {
+    "./build/": {
+      "dependencies": {
+        "fs": true
+      }
+    }
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Gordon-BP/taylor-the-frontend-dev.git"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Gordy",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/Gordon-BP/taylor-the-frontend-dev/issues"
   },
@@ -22,6 +36,7 @@
     "@babel/core": "^7.22.9",
     "@babel/preset-env": "^7.22.9",
     "@babel/preset-typescript": "^7.22.5",
+    "@types/express": "^4.17.17",
     "@types/jest": "^29.5.3",
     "@types/uuid": "^9.0.2",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
@@ -39,6 +54,11 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
+    "express": "^4.18.2",
     "langchain": "^0.0.121"
+  },
+  "main": "babel.config.js",
+  "directories": {
+    "test": "tests"
   }
 }

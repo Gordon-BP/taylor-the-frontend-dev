@@ -1,11 +1,21 @@
 {
     "compilerOptions": {
       "target": "es6",
-      "module": "commonjs",
+      "module": "es6",
+      "moduleResolution": "node",
+      "allowSyntheticDefaultImports": true,
       "outDir": "build",
+      "sourceMap": true,
       "strict": true
     },
-    "include": ["src","tests"],
+
+    "include": [
+      "src/**/*.ts",
+      "sec/**/**/*.ts"
+    ],
+    "exclude": [
+      "node_modules"
+    ],
     "scripts": {
       "build": "tsc"
       }

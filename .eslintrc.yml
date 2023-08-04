@@ -7,7 +7,9 @@ extends:
   - "plugin:prettier/recommended"
 parser: "@typescript-eslint/parser"
 parserOptions:
-  project: "./tsconfig.json"
+  sourceType: module,
+  ecmaFeatures:
+    modules: true
 plugins:
   - "@typescript-eslint"
   - "prettier"

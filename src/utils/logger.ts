@@ -2,33 +2,46 @@
  * The log levels supported by the TaskLogger.
  */
 export enum LogLevel {
-  DEBUG = "debug",
-  INFO = "info",
-  WARNING = "warning",
-  ERROR = "error",
+  DEBUG = "DEBUG",
+  INFO = "INFO",
+  WARNING = "WARNING",
+  ERROR = "ERROR",
 }
+const levels: { [key: string]: LogLevel } = {
+  debug: LogLevel.DEBUG,
+  error: LogLevel.ERROR,
+  warning: LogLevel.WARNING,
+  info: LogLevel.INFO,
+};
 
 /**
  * Custom logger for tasks with different log levels.
  */
-export class TaskLogger {
-  private logLevel: LogLevel;
-  private taskId: string | null;
+export default class TaskLogger {
+  private logLevel!: LogLevel | string;
+  private taskId!: string | null;
 
   /**
    * Creates a new TaskLogger instance with the specified log level and task ID.
-   * @param {LogLevel} logLevel - The minimum log level to display.
+   * @param {LogLevel | string} logLevel - The minimum log level to display.
    * @param {string | null} taskId - The ID of the task to associate with the logger (optional).
    * @example
    * const logger = new TaskLogger(LogLevel.DEBUG, "my-task")
    * logger.info("Starting Task...")
    */
-  constructor(
-    logLevel: LogLevel = LogLevel.INFO,
-    taskId: string | null = null,
-  ) {
-    this.logLevel = logLevel;
-    this.taskId = taskId;
+  constructor({
+    logLevel = LogLevel.INFO,
+    taskId = null,
+  }: {
+    logLevel: LogLevel | string;
+    taskId: string | null;
+  }) {
+    if (typeof logLevel == "string") {
+      logLevel = levels[logLevel.toUpperCase()];
+    } else {
+      this.logLevel = logLevel;
+      this.taskId = taskId;
+    }
   }
 
   private logLevelPriority: { [level in LogLevel]: number } = {
@@ -57,7 +70,9 @@ export class TaskLogger {
    * @private
    */
   private shouldLog(level: LogLevel): boolean {
-    return this.logLevelPriority[level] >= this.logLevelPriority[this.logLevel];
+    const levelKey: keyof typeof LogLevel =
+      level.toUpperCase() as keyof typeof LogLevel;
+    return this.logLevelPriority[level] >= this.logLevelPriority[levelKey];
   }
 
   /**
@@ -129,7 +144,7 @@ export class TaskLogger {
     if (!taskId) {
       throw new Error("Cannot make a logger for a task without a task ID!");
     } else {
-      return new TaskLogger(this.logLevel, taskId);
+      return new TaskLogger({ logLevel: this.logLevel, taskId: taskId });
     }
   }
 }
