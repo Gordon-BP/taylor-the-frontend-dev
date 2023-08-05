@@ -2,6 +2,7 @@ import { ChildProcess, spawn } from "child_process";
 import { existsSync } from "fs";
 import { Writable } from "stream";
 import TaskLogger from "./logger.js";
+import path from "node:path";
 
 interface SpawnCommands {
   command: string;
@@ -21,11 +22,6 @@ export default class GithubUtils {
    * Checks the GitHub CLI installation and logs the result to the console.
    * @param {ChildProcess} gitProcess - the child process in which to check GitHub installation.
    * @returns {Promise<boolean>} - resolves to true if the installation is OK
-   * @example
-   * const isInstalled = await checkGithubCliInstallation(gitProcess)
-   * if(!isInstalled){
-   *  throw new Error("Github is not installed, please install it")
-   * }
    */
   public async checkGithubCliInstallation({
     gitProcess,
@@ -94,42 +90,36 @@ export default class GithubUtils {
    * @param {string} args.owner - The owner of the repository.
    * @param {string} args.repo - The repository name.
    * @param {taskId} args.taskId - The task uuid.
-   * @param {limit} args.limit - The maximum number of issues to fetch. 20 by default.
+   * @param {limit} args.num - The issue number to fetch info from
    * @returns {Promise<any[]>} A Promise that resolves to an array of issues in JSON format.
-   * @example
-   * const github = new GithubUtils();
-   * try{
-   *    const issues = await githubUtils.getIssuesFromRepo({
-   *        owner: "github-username",
-   *        repo: "my-repository-name"
-   *        taskId: uuid()
-   *        });
-   *    issues.forEach((issue) => {
-   *        console.log(`${issue.title}: ${issue.status}`)
-   *    }
-   * } catch (error){
-   *    console.error("Error getting issues:", error.message)
-   * }
    */
-  public async getIssuesFromRepo({
+  public async getIssueFromRepo({
     owner,
     repo,
     taskId,
-    limit = 20,
-    gitProcess,
+    num,
   }: {
     owner: string;
     repo: string;
     taskId: string;
-    limit: number;
-    gitProcess: ChildProcess;
-  }): Promise<any[]> {
-    this.logger
-      .forTask(taskId)
-      .info(`Fetching issues from ${owner}/${repo}...`);
+    num: string;
+  }): Promise<object> {
+    const log = new TaskLogger({ logLevel: "debug", taskId });
+    log.info(`Fetching issue from ${owner}/${repo}...`);
+    const p = path.join("./repos", owner, repo);
     return new Promise((resolve, reject) => {
-      gitProcess.stdin!.write(
-        `gh issue list --limit ${limit} --json "assignees,body,comments,createdAt,id,labels,number,state,title,updatedAt"`,
+      const gitProcess = spawn(
+        "gh",
+        [
+          "issue",
+          "view",
+          num,
+          "-R",
+          `${owner}/${repo}`,
+          "--json",
+          "assignees,author,body,comments,createdAt,state,title,updatedAt,url",
+        ],
+        { cwd: p },
       );
       const chunks: any[] = [];
       const writableStream = new Writable({
@@ -139,29 +129,24 @@ export default class GithubUtils {
         },
       });
       gitProcess.stdout?.pipe(writableStream);
-
       gitProcess.once("error", (error) => {
-        this.logger
-          .forTask(taskId)
-          .error(`Error etching issues from ${owner}/${repo}:\n${error}`);
+        log.error(`Error fetching issue from ${owner}/${repo}:\n${error}`);
         reject(error);
       });
 
       gitProcess.once("exit", (code) => {
         const outputData = Buffer.concat(chunks).toString();
-        this.logger.forTask(taskId).info(outputData);
         if (code === 0) {
           try {
             const issues = JSON.parse(outputData);
-            this.logger.forTask(taskId).info(`Successfully fetched issues!`);
             resolve(issues);
-          } catch (parseError) {
-            reject(parseError);
+          } catch (err:any) {
+            reject(new Error (`Error parsing reply:${err}`));
           }
         } else {
           reject(
             new Error(
-              `Failed to fetch issues from the repository.\n${outputData}`,
+              `Failed to fetch issue from the repository.\n${outputData}`,
             ),
           );
         }
@@ -179,19 +164,6 @@ export default class GithubUtils {
    * @param {string} args.branchName - The name of the new branch.
    * @param {string} args.taskId - The task uuid.
    * @returns {Promise<boolean>} A Promise that resolves true when the branch is successfully created.
-   * @example
-   * const github = new GithubUtils();
-   * try {
-   *   await github.createBranch({
-   *    owner: "github-user",
-   *    repo: "my-repository-name",
-   *    branchName: "my-new-branch"
-   *    taskId: uuid()
-   * });
-   *   console.log("Branch created successfully.");
-   * } catch (error) {
-   *    console.error("Error creating the branch:", error.message);
-   * }
    */
   public async createBranch({
     owner,
@@ -206,64 +178,60 @@ export default class GithubUtils {
     branchName: string;
     taskId: string;
   }): Promise<boolean> {
+    const log = new TaskLogger({ logLevel: "debug", taskId: taskId });
+    const p = path.join("./repos", owner, repo, branchName);
     return new Promise(async (resolve, reject) => {
-      const workDir = `./repos/${owner}/${repo}`;
-      this.logger.forTask(taskId).info(`Checking for repo on local disk..`);
-      if (!existsSync(`${workDir}/${baseBranch}`)) {
-        this.logger
-          .forTask(taskId)
-          .info(`Repo has not been cloned to disk. Cloning...`);
-        await this.cloneRepo({
-          owner: owner,
-          repo: repo,
-          baseBranch: baseBranch,
+      try {
+        this.logger.forTask(taskId).info(`Checking for repo on local disk..`);
+        if (!existsSync(p)) {
+          log.info(`Repo has not been cloned to disk. Cloning...`);
+          await this.cloneRepo({
+            owner: owner,
+            repo: repo,
+            baseBranch: baseBranch,
+            taskId: taskId,
+          });
+        }
+        const isValidRepo = await this.checkGitRepository({
+          dir: p,
           taskId: taskId,
         });
-      }
-      const isValidRepo = await this.checkGitRepository({
-        dir: `${workDir}/${baseBranch}`,
-        taskId: taskId,
-      });
-      if (!isValidRepo) {
-        this.logger
-          .forTask(taskId)
-          .error("Something is wrong with the local base branch");
-        return reject(new Error("Local repo base branch ain't right"));
-      }
-      if (existsSync(`workDir/${branchName}`)) {
-        this.logger.forTask(taskId).error(`${branchName} already exists!`);
-        return resolve(false);
-      }
-      this.logger
-        .forTask(taskId)
-        .info(
-          `Creating new branch ${branchName} on ${owner}/${repo}/${branchName}...`,
+        if (!isValidRepo) {
+          log.error(`Something is wrong with the local base branch at ${p}`);
+          reject(
+            new Error("Local repo base branch is not a valid Github repo"),
+          );
+        }
+        if (existsSync(p)) {
+          log.error(`${branchName} already exists!`);
+          resolve(false);
+        }
+        log.info(`Creating new branch ${branchName} on ${p}...`);
+        const gitProcess = spawn(
+          "git",
+          ["worktree", "add", "-b", branchName, `../${branchName}`],
+          { stdio: "inherit", cwd: p },
         );
-      const gitProcess = spawn(
-        "git",
-        ["worktree", "add", "-b", branchName, `../${branchName}`],
-        { stdio: "inherit", cwd: `${workDir}/${baseBranch}` },
-      );
 
-      gitProcess.once("error", (error) => {
-        this.logger.forTask(taskId).error(`Error creating branch`);
-        return reject(error);
-      });
-      gitProcess.once("exit", (code) => {
-        if (code === 0) {
-          this.logger
-            .forTask(taskId)
-            .info(
+        gitProcess.once("error", (err) => {
+          log.error(`Error creating branch: ${err}`);
+          reject(err);
+        });
+        gitProcess.once("exit", (code) => {
+          if (code === 0) {
+            log.info(
               `Branch ${branchName} on ${owner}/${repo} successfully created`,
             );
-          return resolve(true);
-        } else {
-          this.logger
-            .forTask(taskId)
-            .error(`Failed to create the branch. Exit code: ${code}`);
-          return resolve(false);
-        }
-      });
+            resolve(true);
+          } else {
+            log.error(`Failed to create the branch. Exit code: ${code}`);
+            resolve(false);
+          }
+        });
+      } catch (err) {
+        log.error(`Error while creating branch: ${err}`);
+        reject();
+      }
     });
   }
   /**
@@ -294,42 +262,34 @@ export default class GithubUtils {
     baseBranch: string;
     taskId: string;
   }): Promise<boolean> {
-    try {
-      return new Promise(async (resolve, reject) => {
-        const workDir = `./repos/${owner}/${repo}/${baseBranch}`;
+    const log = new TaskLogger({ logLevel: "debug", taskId: taskId });
+    return new Promise(async (resolve, reject) => {
+      try {
+        const workDir = path.join("./repos", owner, repo, baseBranch);
+        log.info(`Cloning ${owner}/${repo} to ${workDir}...`);
         const gitProcess = spawn(
           "git",
           ["clone", `https://github.com/${owner}/${repo}`, workDir],
           { stdio: "inherit", shell: true },
         );
-
-        this.logger
-          .forTask(taskId)
-          .info(`Cloning ${owner}/${repo} to ${workDir}...`);
         gitProcess.once("error", (error: any) => {
-          this.logger.forTask(taskId).error(`Error creating branch:\n${error}`);
+          log.error(`Error cloning repo:\n${error}`);
           reject();
         });
         gitProcess.once("exit", (code) => {
           if (code === 0) {
-            this.logger
-              .forTask(taskId)
-              .info(`Branch on ${owner}/${repo} successfully created`);
+            log.info(`Successfully cloned ${owner}/${repo}!`);
             resolve(true);
           } else {
-            this.logger
-              .forTask(taskId)
-              .error(`Failed to create the branch. Exit code: ${code}`);
+            log.error(`Failed to clone the repo. Exit code: ${code}`);
             resolve(false);
           }
         });
-      });
-    } catch (error: any) {
-      this.logger.forTask(taskId).error(`There was an error: ${error}`);
-      return new Promise((resolve, reject) => {
+      } catch (error: any) {
+        log.error(`There was an error: ${error}`);
         reject();
-      });
-    }
+      }
+    });
   }
   /**
    * Commits changes from local repo to the branch
@@ -354,16 +314,16 @@ export default class GithubUtils {
     message: string;
     taskId: string;
   }): Promise<boolean> {
-    try {
-      return new Promise(async (resolve, reject) => {
+    const log = new TaskLogger({ logLevel: "info", taskId: taskId });
+
+    return new Promise(async (resolve, reject) => {
+      try {
         const isRepo = await this.checkGitRepository({
           dir: dir,
           taskId: taskId,
         });
         if (!isRepo) {
-          this.logger
-            .forTask(taskId)
-            .error("gitProcess is not in a valid repo directory");
+          log.error("gitProcess is not in a valid repo directory");
           reject();
         }
         const comms: SpawnCommands[] = [
@@ -410,6 +370,7 @@ export default class GithubUtils {
           },
         ];
         for (const comm of comms) {
+          log.debug(`Running ${comm.command} ${comm.args.toString()}...`);
           await this.spawnAsync({
             command: comm.command,
             args: comm.args,
@@ -417,13 +378,11 @@ export default class GithubUtils {
           });
         }
         resolve(true);
-      });
-    } catch (error) {
-      this.logger.forTask(taskId).error(`Error committing: ${error}`);
-      return new Promise((resolve, reject) => {
+      } catch (error) {
+        log.error(`Error committing: ${error}`);
         reject();
-      });
-    }
+      }
+    });
   }
   /**
    * Validates if the current working directory is a valid Github repo
@@ -439,45 +398,129 @@ export default class GithubUtils {
     dir: string;
     taskId: string;
   }): Promise<boolean> {
-    this.logger.forTask(taskId).debug(`Checking if ${dir} is a valid repo...`);
-    try {
-      return new Promise<boolean>(async (resolve, reject) => {
-        const comm: SpawnCommands = {
-          command: "git",
-          args: ["rev-parse", "--is-inside-work-tree"],
-          options: { stdio: "inherit", cwd: dir },
-        };
+    const log = new TaskLogger({ logLevel: "info", taskId: taskId });
+    log.debug(`Checking if ${dir} is a valid repo...`);
+
+    const comm: SpawnCommands = {
+      command: "git",
+      args: ["rev-parse", "--is-inside-work-tree"],
+      options: { stdio: "inherit", cwd: dir },
+    };
+    return new Promise<boolean>(async (resolve, reject) => {
+      try {
         const code = await this.spawnAsync(comm);
         if (code !== 0) {
-          this.logger
-            .forTask(taskId)
-            .error(`Cannot validate local repo:\nError code ${code}`);
-          reject();
+          log.error(`Cannot validate local repo:\nError code ${code}`);
+          resolve(false);
         } else {
           this.logger.forTask(taskId).info(`${dir} is a valid Github repo!`);
           resolve(true);
         }
-      });
-    } catch (error) {
-      this.logger
-        .forTask(taskId)
-        .error(`Error validating local repo: ${error}`);
-      return new Promise(async (resolve, reject) => {
+      } catch (error) {
+        log.error(`Error validating local repo: ${error}`);
         reject();
-      });
-    }
+      }
+    });
   }
-
-  public async createPR(
-    baseBranch: string,
-    branchName: string,
-    title: string,
-    body: string,
-    gitProcess: ChildProcess,
-  ): Promise<void> {
-    gitProcess.stdin!.write(`
-    cd ../${baseBranch} && 
-    gh push -u ../${branchName} && 
-    gh pr create --base ${baseBranch} --head ${branchName} --title ${title} --body ${body}`);
+  /**
+   * Creates a new Pull Request
+   * @param owner
+   * @param repo
+   * @param baseBranch
+   * @param branchName
+   * @param title
+   * @param body
+   * @param num
+   * @param taskId
+   */
+  public async createPR({
+    owner,
+    repo,
+    baseBranch,
+    branchName,
+    title,
+    body,
+    taskId,
+    num,
+  }: {
+    owner: string;
+    repo: string;
+    baseBranch: string;
+    branchName: string;
+    title: string;
+    body: string;
+    taskId: string;
+    num:string;
+  }): Promise<boolean> {
+    const dir = path.join("./repos", owner, repo, branchName);
+    const log = new TaskLogger({ logLevel: "info", taskId: taskId });
+    const issueLink = `https://github.com/${owner}/${repo}/issues/${num}`
+    const comms: SpawnCommands[] = [
+      {
+        //Step 1: Remove whatever remote used to be called "origin"
+        command: "git",
+        args: ["remote", "remove", "origin"],
+        options: { stdio: "inherit", cwd: dir },
+      },
+      {
+        //Step 2: Set new repo as "origin"
+        command: "git",
+        args: [
+          "remote",
+          "add",
+          "origin",
+          `https://github.com/${owner}/${repo}`,
+        ],
+        options: { stdio: "inherit", cwd: dir },
+      },
+      {
+        //Step 3: Verify the remote URL
+        command: "git",
+        args: ["remote", "-v"],
+        options: { stdio: "inherit", cwd: dir },
+      },
+      {
+        //Step 4: Push changes from local to remote
+        command: "git",
+        args: ["push", "origin", branchName],
+        options: { stdio: "inherit", cwd: dir },
+      },
+      {
+        //Step 5: Create the pull request
+        command: "gh",
+        args: [
+          "pr",
+          "create",
+          "--base",
+          baseBranch,
+          "--head",
+          branchName,
+          "--title",
+          title,
+          "--body",
+          body+`\n fixes ${issueLink}`,
+        ],
+        options: { stdio: "inherit", cwd: dir },
+      },
+    ];
+    return new Promise<boolean>(async (resolve, reject) => {
+      try {
+        for (const comm of comms) {
+          log.debug(
+            `Running command ${comm.command} ${comm.args.toString()}...`,
+          );
+          await this.spawnAsync({
+            command: comm.command,
+            args: comm.args,
+            options: comm.options,
+          });
+        }
+        log.info("Pull request successfully created!");
+        resolve(true);
+      } catch (err) {
+        log.error(`Error creating pull request: ${err}`);
+        reject();
+      }
+    });
   }
 }

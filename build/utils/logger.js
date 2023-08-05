@@ -6,13 +6,13 @@ export var LogLevel;
     LogLevel["ERROR"] = "ERROR";
 })(LogLevel || (LogLevel = {}));
 const colors = {
-    reset: '\x1b[0m',
-    red: '\x1b[31m',
-    green: '\x1b[32m',
-    yellow: '\x1b[33m',
-    blue: '\x1b[34m',
-    cyan: '\x1b[36m',
-    white: '\x1b[37m',
+    reset: "\x1b[0m",
+    red: "\x1b[31m",
+    green: "\x1b[32m",
+    yellow: "\x1b[33m",
+    blue: "\x1b[34m",
+    cyan: "\x1b[36m",
+    white: "\x1b[37m",
 };
 export default class TaskLogger {
     /**
@@ -53,10 +53,10 @@ export default class TaskLogger {
     getLogPrefix(level) {
         const timestamp = new Date().toISOString();
         const levelColors = {
-            debug: '\x1b[33m',
-            error: '\x1b[31m',
-            info: '\x1b[32m',
-            warning: '\x1b[33m', // Yellow (Use the same as debug, or choose a different orange color)
+            debug: "\x1b[33m",
+            error: "\x1b[31m",
+            info: "\x1b[32m",
+            warning: "\x1b[33m", // Yellow (Use the same as debug, or choose a different orange color)
         };
         const levelColor = levelColors[level.toLowerCase()] || colors.reset;
         return `[${timestamp}] ${colors.cyan}[${this.taskId}] ${levelColor}[${level.toUpperCase()}] ${colors.reset}: `;

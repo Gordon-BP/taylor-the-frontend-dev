@@ -7,8 +7,8 @@ An AI-powered software dev that does some pretty cool things!
 - [x] Clone repo
 - [x] Create new branch
 - [x] Stage, Commit, and Push combo
-- [ ] Create Pull Request
-- [ ] Get Issue
+- [x] Create Pull Request
+- [x] Get Issue
 - [ ] Listen for issue assignment
 - [ ] Comment on issue
 - [ ] Comment on pull request

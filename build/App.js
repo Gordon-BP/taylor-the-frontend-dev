@@ -318,7 +318,7 @@ class App {
             }
         }));
         /**
-         * Commits a change to
+         * Stages, commits, and pushes changes to the remote branch
          * @name post/commit
          * @function
          * @memberof module:App~mainRouter
@@ -360,6 +360,92 @@ class App {
                 res.status(500).json({
                     message: `Error committing changes: ${err}`,
                 });
+            });
+        }));
+        /**
+         * Gets a specific issue from the repo
+         * @name get/issue
+         * @function
+         * @memberof module:App~mainRouter
+         * @inner
+         * @param {string} num - the issue number
+         * @param {string} taskId - which task this process is for
+         */
+        router.get("/:owner/:repo/issue", v.validateReq(["owner", "repo", "num"], ["num", "taskId"]), v.validateTaskId, (req, res) => __awaiter(this, void 0, void 0, function* () {
+            const { owner, repo } = req.params;
+            const { num, taskId } = req.body;
+            const github = new GithubUtils();
+            const log = new TaskLogger({ logLevel: "info", taskId: taskId });
+            log.debug(`Fetching issue ${num} from ${owner}/${repo}`);
+            yield github
+                .getIssueFromRepo({
+                owner: owner,
+                repo: repo,
+                taskId: taskId,
+                num: num,
+            })
+                .then((result) => {
+                if (typeof result == "object") {
+                    log.info(`Successfully fetched issue ${num}`);
+                    res.status(200).json({
+                        data: result,
+                    });
+                }
+                else {
+                    log.error(`Failed to fetch issue: ${result}`);
+                    res.status(500).json({
+                        message: `Failed to fetch issue: ${result}`,
+                    });
+                }
+            })
+                .catch((err) => {
+                log.error(`Error while fetching issue: ${err}`);
+                res.status(500).json({
+                    message: `Error while fetching issue: ${err}`,
+                });
+            });
+        }));
+        /**
+         * Creates a new pull request
+         * @name post/commit
+         * @function
+         * @memberof module:App~mainRouter
+         * @inner
+         * @param {string} title - the PR title
+         * @param {string} body - the PR body/description
+         * @param {string} baseBranch - the base branch name
+         * @param {string} num - the issue number which this PR fixes
+         * @param {string} taskId - which task this process is for
+         */
+        router.post("/:owner/:repo/:branchName/createPR", v.validateReq(["owner", "repo", "branchName"], ["title", "body", "taskId", "baseBranch", "num"]), v.validateTaskId, (req, res) => __awaiter(this, void 0, void 0, function* () {
+            const { owner, repo, branchName } = req.params;
+            const { title, body, baseBranch, num, taskId } = req.body;
+            const github = new GithubUtils();
+            const log = new TaskLogger({ logLevel: "info", taskId: taskId });
+            const p = path.join("./repos", owner, repo, branchName);
+            log.debug(`Creating pull request from ${branchName} to ${baseBranch}`);
+            yield github.createPR({
+                owner: owner,
+                repo: repo,
+                baseBranch: baseBranch,
+                branchName: branchName,
+                title: title,
+                body: body,
+                num: num,
+                taskId: taskId
+            }).then(success => {
+                if (success) {
+                    log.info(`Successfully created pull request`);
+                    res.status(200).json({
+                        message: "Successfully created pull request"
+                    });
+                }
+                else {
+                    log.error("Could not make pull request");
+                    res.status(500).json({
+                        message: "Could not make pull request"
+                    });
+                }
             });
         }));
         this.express.use("/", router);
