@@ -12,6 +12,7 @@ import { existsSync } from "fs";
 import { Writable } from "stream";
 import TaskLogger from "./logger.js";
 import path from "node:path";
+const issuesCommentedOn = [];
 export default class GithubUtils {
     /**
      * Creates a new GithubUtils
@@ -357,7 +358,7 @@ export default class GithubUtils {
                         resolve(false);
                     }
                     else {
-                        this.logger.forTask(taskId).info(`${dir} is a valid Github repo!`);
+                        log.info(`${dir} is a valid Github repo!`);
                         resolve(true);
                     }
                 }
@@ -447,6 +448,48 @@ export default class GithubUtils {
                 }
                 catch (err) {
                     log.error(`Error creating pull request: ${err}`);
+                    reject();
+                }
+            }));
+        });
+    }
+    /**
+     * Comment on Issue
+     */
+    postIssueComment({ event, taskId }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            //es-lint ignore
+            const log = new TaskLogger({ logLevel: "info", taskId: taskId });
+            let { number, body, user, state, comments, created_at, updated_at } = event.issue;
+            if (issuesCommentedOn.includes(number)) {
+                return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                    log.info("We have already commented on this issue");
+                    resolve(false);
+                }));
+            }
+            let { full_name } = event.repository;
+            const comm = {
+                command: "gh",
+                args: ["issue", "comment", number.toString(), "-R", `https://github.com/${full_name}`, "-b", "OK I will work on this task"],
+                options: { stdio: "inherit" },
+            };
+            return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                try {
+                    const code = yield this.spawnAsync(comm);
+                    if (code !== 0) {
+                        issuesCommentedOn.push(number);
+                        log.error(`Cannot leave comment\nError code ${code}`);
+                        resolve(false);
+                    }
+                    else {
+                        issuesCommentedOn.push(number);
+                        log.info(`We have replied to the comment`);
+                        resolve(true);
+                    }
+                }
+                catch (error) {
+                    issuesCommentedOn.push(number);
+                    log.error(`Error making comment: ${error}`);
                     reject();
                 }
             }));

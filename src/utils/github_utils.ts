@@ -1,4 +1,5 @@
 import { ChildProcess, spawn } from "child_process";
+import type { PullRequestEvent, IssuesEvent } from "@octokit/webhooks-types";
 import { existsSync } from "fs";
 import { Writable } from "stream";
 import TaskLogger from "./logger.js";
@@ -9,6 +10,7 @@ interface SpawnCommands {
   args: Array<string>;
   options: object;
 }
+const issuesCommentedOn:number[] = []
 export default class GithubUtils {
   /**
    * Creates a new GithubUtils
@@ -413,7 +415,7 @@ export default class GithubUtils {
           log.error(`Cannot validate local repo:\nError code ${code}`);
           resolve(false);
         } else {
-          this.logger.forTask(taskId).info(`${dir} is a valid Github repo!`);
+          log.info(`${dir} is a valid Github repo!`);
           resolve(true);
         }
       } catch (error) {
@@ -523,4 +525,48 @@ export default class GithubUtils {
       }
     });
   }
+  /**
+   * Comment on Issue
+   */
+  public async postIssueComment(
+    {event, taskId}:{
+      event:IssuesEvent, taskId:string}){
+    //es-lint ignore
+    const log = new TaskLogger({ logLevel: "info", taskId: taskId });
+    let {number, body, user, state, comments, created_at, updated_at} = event.issue 
+    if(issuesCommentedOn.includes(number)){
+      return new Promise<boolean>(async (resolve, reject)=>{
+        log.info("We have already commented on this issue")
+        resolve(false)
+      })
+    }
+    let {full_name} = event.repository
+      const comm: SpawnCommands = {
+        command: "gh",
+        args: ["issue","comment",number.toString(),"-R", `https://github.com/${full_name}`, "-b", "OK I will work on this task"],
+        options: { stdio: "inherit"},
+      };
+      return new Promise<boolean>(async (resolve, reject) => {
+        try {
+          const code = await this.spawnAsync(comm);
+          if (code !== 0) {
+            issuesCommentedOn.push(number)
+            log.error(`Cannot leave comment\nError code ${code}`);
+            resolve(false);
+          } else {
+            issuesCommentedOn.push(number)
+            log.info(`We have replied to the comment`);
+            resolve(true);
+          }
+        } catch (error) {
+          issuesCommentedOn.push(number)
+          log.error(`Error making comment: ${error}`);
+          reject();
+        }
+      });
+    }
+
+  /**
+   * Comment on PR
+   */
 }

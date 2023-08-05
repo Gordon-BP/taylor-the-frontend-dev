@@ -3,6 +3,8 @@ import TaskLogger from "./utils/logger.js";
 import { gh_router } from "./routes/github_routes.js";
 import bodyParser from "body-parser";
 import { fs_router } from "./routes/file_routes.js";
+import GithubUtils from "./utils/github_utils.js";
+import { v4 as uuid } from 'uuid';
 const logger = new TaskLogger({ logLevel: "info", taskId: null });
 class App {
     /**
@@ -16,12 +18,23 @@ class App {
         this.mountRoutes();
     }
     mountRoutes() {
-        const statusRouter = express.Router();
-        statusRouter.get('/', (req, res) => {
+        const appRouter = express.Router();
+        appRouter.get('/status', (req, res) => {
             res.status(200).json({ message: "Server is alive" });
         });
+        appRouter.use(bodyParser.json());
+        appRouter.post("/hook", (req, res) => {
+            const github = new GithubUtils();
+            const taskId = uuid();
+            console.log("hooooooooooooooook");
+            let { action, issue, pull_request } = req.body;
+            if (issue) {
+                github.postIssueComment({ event: req.body, taskId: taskId });
+            }
+            res.status(200).end();
+        });
         this.express.use(bodyParser.json());
-        this.express.use("/app/v1/status", statusRouter);
+        this.express.use("/app/v1", appRouter);
         this.express.use("/app/v1/github", gh_router);
         this.express.use("/app/v1/files", fs_router);
         this.express.use("/docs", express.static("./docs"));
