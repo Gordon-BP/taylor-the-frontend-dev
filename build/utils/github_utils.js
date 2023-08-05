@@ -383,6 +383,7 @@ export default class GithubUtils {
         return __awaiter(this, void 0, void 0, function* () {
             const dir = path.join("./repos", owner, repo, branchName);
             const log = new TaskLogger({ logLevel: "info", taskId: taskId });
+            const issueLink = `https://github.com/${owner}/${repo}/issues/${num}`;
             const comms = [
                 {
                     //Step 1: Remove whatever remote used to be called "origin"
@@ -426,7 +427,7 @@ export default class GithubUtils {
                         "--title",
                         title,
                         "--body",
-                        body + `\n fixes ${num}`,
+                        body + `\n fixes ${issueLink}`,
                     ],
                     options: { stdio: "inherit", cwd: dir },
                 },

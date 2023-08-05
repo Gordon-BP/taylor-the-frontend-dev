@@ -140,8 +140,8 @@ export default class GithubUtils {
           try {
             const issues = JSON.parse(outputData);
             resolve(issues);
-          } catch (err:any) {
-            reject(new Error (`Error parsing reply:${err}`));
+          } catch (err: any) {
+            reject(new Error(`Error parsing reply:${err}`));
           }
         } else {
           reject(
@@ -450,11 +450,11 @@ export default class GithubUtils {
     title: string;
     body: string;
     taskId: string;
-    num:string;
+    num: string;
   }): Promise<boolean> {
     const dir = path.join("./repos", owner, repo, branchName);
     const log = new TaskLogger({ logLevel: "info", taskId: taskId });
-    const issueLink = `https://github.com/${owner}/${repo}/issues/${num}`
+    const issueLink = `https://github.com/${owner}/${repo}/issues/${num}`;
     const comms: SpawnCommands[] = [
       {
         //Step 1: Remove whatever remote used to be called "origin"
@@ -498,7 +498,7 @@ export default class GithubUtils {
           "--title",
           title,
           "--body",
-          body+`\n fixes ${issueLink}`,
+          body + `\n fixes ${issueLink}`,
         ],
         options: { stdio: "inherit", cwd: dir },
       },

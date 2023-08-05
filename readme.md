@@ -19,6 +19,7 @@ An AI-powered software dev that does some pretty cool things!
 - [x] Write or Create File
 - [x] Delete File
 - [x] Get Directory Tree
+- [x] Tests for file skills
 ✅ DONE WITH PRIMITIVES ✅
 
 **Other Utilities**

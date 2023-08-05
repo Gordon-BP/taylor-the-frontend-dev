@@ -1,33 +1,31 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * Do typescript projects even have a main?
- */
-const child_process_1 = require("child_process");
-const github_utils_1 = require("./utils/github_utils");
-const uuid_1 = require("uuid");
-function runCloneRepo() {
-    // Replace these values with the repository details you want to clone
-    const owner = 'Gordon-BP';
-    const repo = 'taylor-test-repo';
-    const baseBranch = 'main'; // Replace with the desired base branch
-    const taskId = (0, uuid_1.v4)();
-    const githubUtils = new github_utils_1.GithubUtils();
-    // Use 'spawn' to create a child process
-    const process = (0, child_process_1.spawn)('git', [], {
-        stdio: 'inherit', // This will show the output of the git commands in the terminal
-    });
-    // Call the cloneRepo method
-    githubUtils
-        .cloneRepo({
-        owner,
-        repo,
-        baseBranch,
-        taskId,
-        process,
-    })
-        .catch((error) => {
-        console.error('Error cloning repository:', error);
-    });
+import express from "express";
+import TaskLogger from "./utils/logger.js";
+import { gh_router } from "./routes/github_routes.js";
+import bodyParser from "body-parser";
+import { fs_router } from "./routes/file_routes.js";
+const logger = new TaskLogger({ logLevel: "info", taskId: null });
+class App {
+    /**
+     * Wrapper for the main app. Creates an express app with an endpoint to test
+     * and another endpoint to clone a hard-coded repo.
+     * @module App
+     * @namespace mainRouter
+     */
+    constructor() {
+        this.express = express();
+        this.mountRoutes();
+    }
+    mountRoutes() {
+        const statusRouter = express.Router();
+        statusRouter.get('/', (req, res) => {
+            res.status(200).json({ message: "Server is alive" });
+        });
+        this.express.use(bodyParser.json());
+        this.express.use("/app/v1/status", statusRouter);
+        this.express.use("/app/v1/github", gh_router);
+        this.express.use("/app/v1/files", fs_router);
+        this.express.use("/docs", express.static("./docs"));
+    }
 }
-runCloneRepo();
+export default new App().express;
+//# sourceMappingURL=App.js.map
