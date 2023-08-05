@@ -1,3 +1,6 @@
 *.pem
 *.env
-/docs/*
+docs/
+repos/
+node_modules/
+build/
