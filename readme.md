@@ -3,16 +3,17 @@
 An AI-powered software dev that does some pretty cool things!
 
 ## To-do list
-**Github Utilities:**
+**Github Utilities:** --Almost there!
 - [x] Clone repo
 - [x] Create new branch
 - [x] Stage, Commit, and Push combo
 - [x] Create Pull Request
 - [x] Get Issue
-- [ ] Listen for issue assignment
-- [ ] Comment on issue
-- [ ] Comment on pull request
-- [ ] Listen for pull request being merged or closed
+- [x] Listen for issue creation
+- [x] Listen for pull request updates
+- [x] Comment on issue
+✅ DONE WITH GITHUB ✅
+
 
 **Primitive Skills:**
 - [x] Read file
