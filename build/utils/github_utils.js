@@ -52,11 +52,15 @@ export default class GithubUtils {
                             .debug("Github installation OK!");
                         //    gitProcess.stdin!.uncork()
                         if (code === 0) {
-                            this.logger.forTask("Git-install-check").info("Github is installed");
+                            this.logger
+                                .forTask("Git-install-check")
+                                .info("Github is installed");
                             resolve(true);
                         }
                         else {
-                            this.logger.forTask("Git-install-check").error(`Something is wrong with Github CLI: ${code}`);
+                            this.logger
+                                .forTask("Git-install-check")
+                                .error(`Something is wrong with Github CLI: ${code}`);
                             resolve(false);
                         }
                     });
@@ -66,7 +70,9 @@ export default class GithubUtils {
                 this.logger
                     .forTask("Git-install-check")
                     .error(`Error with Github: ${error}`);
-                return new Promise((resolve, reject) => { reject(); });
+                return new Promise((resolve, reject) => {
+                    reject();
+                });
             }
         });
     }
@@ -79,8 +85,8 @@ export default class GithubUtils {
         return __awaiter(this, void 0, void 0, function* () {
             return new Promise((resolve, reject) => {
                 const proc = spawn(commandArgs.command, commandArgs.args, commandArgs.options);
-                proc.once('error', err => reject(err));
-                proc.once('exit', code => resolve(code));
+                proc.once("error", (err) => reject(err));
+                proc.once("exit", (code) => resolve(code));
             });
         });
     }
@@ -174,7 +180,7 @@ export default class GithubUtils {
      *    console.error("Error creating the branch:", error.message);
      * }
      */
-    createBranch({ owner, repo, baseBranch = "main", branchName, taskId }) {
+    createBranch({ owner, repo, baseBranch = "main", branchName, taskId, }) {
         return __awaiter(this, void 0, void 0, function* () {
             return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                 const workDir = `./repos/${owner}/${repo}`;
@@ -187,12 +193,17 @@ export default class GithubUtils {
                         owner: owner,
                         repo: repo,
                         baseBranch: baseBranch,
-                        taskId: taskId
+                        taskId: taskId,
                     });
                 }
-                const isValidRepo = yield this.checkGitRepository({ dir: `${workDir}/${baseBranch}`, taskId: taskId });
+                const isValidRepo = yield this.checkGitRepository({
+                    dir: `${workDir}/${baseBranch}`,
+                    taskId: taskId,
+                });
                 if (!isValidRepo) {
-                    this.logger.forTask(taskId).error("Something is wrong with the local base branch");
+                    this.logger
+                        .forTask(taskId)
+                        .error("Something is wrong with the local base branch");
                     return reject(new Error("Local repo base branch ain't right"));
                 }
                 if (existsSync(`workDir/${branchName}`)) {
@@ -202,7 +213,7 @@ export default class GithubUtils {
                 this.logger
                     .forTask(taskId)
                     .info(`Creating new branch ${branchName} on ${owner}/${repo}/${branchName}...`);
-                const gitProcess = spawn("git", ["worktree", "add", "-b", branchName, `../${branchName}`], { stdio: 'inherit', cwd: `${workDir}/${baseBranch}` });
+                const gitProcess = spawn("git", ["worktree", "add", "-b", branchName, `../${branchName}`], { stdio: "inherit", cwd: `${workDir}/${baseBranch}` });
                 gitProcess.once("error", (error) => {
                     this.logger.forTask(taskId).error(`Error creating branch`);
                     return reject(error);
@@ -215,7 +226,9 @@ export default class GithubUtils {
                         return resolve(true);
                     }
                     else {
-                        this.logger.forTask(taskId).error(`Failed to create the branch. Exit code: ${code}`);
+                        this.logger
+                            .forTask(taskId)
+                            .error(`Failed to create the branch. Exit code: ${code}`);
                         return resolve(false);
                     }
                 });
@@ -244,7 +257,7 @@ export default class GithubUtils {
             try {
                 return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                     const workDir = `./repos/${owner}/${repo}/${baseBranch}`;
-                    const gitProcess = spawn("git", ["clone", `https://github.com/${owner}/${repo}`, workDir], { stdio: 'inherit', shell: true });
+                    const gitProcess = spawn("git", ["clone", `https://github.com/${owner}/${repo}`, workDir], { stdio: "inherit", shell: true });
                     this.logger
                         .forTask(taskId)
                         .info(`Cloning ${owner}/${repo} to ${workDir}...`);
@@ -260,7 +273,9 @@ export default class GithubUtils {
                             resolve(true);
                         }
                         else {
-                            this.logger.forTask(taskId).error(`Failed to create the branch. Exit code: ${code}`);
+                            this.logger
+                                .forTask(taskId)
+                                .error(`Failed to create the branch. Exit code: ${code}`);
                             resolve(false);
                         }
                     });
@@ -268,7 +283,9 @@ export default class GithubUtils {
             }
             catch (error) {
                 this.logger.forTask(taskId).error(`There was an error: ${error}`);
-                return new Promise((resolve, reject) => { reject(); });
+                return new Promise((resolve, reject) => {
+                    reject();
+                });
             }
         });
     }
@@ -280,7 +297,7 @@ export default class GithubUtils {
      * @param {string} args.taskId - The task Id
      * @returns {Promise<boolean>} - True is the commit is successful
      */
-    commit({ dir, message, taskId }) {
+    commit({ owner, repo, branchName, dir, message, taskId, }) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
@@ -293,52 +310,65 @@ export default class GithubUtils {
                             .forTask(taskId)
                             .error("gitProcess is not in a valid repo directory");
                         resolve(false);
-                    } /**
-                    const comms: SpawnCommands[]=[
-                      {
-                        command:"git",
-                        args:["remote", "add", "."],
-                        options:{stdio:'inherit', cwd:workDir}
-                      },
-                      {
-                        command:"git",
-                        args:["worktree", "add", "-b" ,branchName, `./${branchName}`],
-                        options:{stdio:'inherit', cwd:workDir}
-                      },
-                    ]*/
-                    const addProcess = spawn("git", ["add", "."]);
-                    addProcess.once("exit", (code) => {
-                        if (code == 0) {
-                            const commitProcess = spawn("git", ["commit", "-a", "-m", message]);
-                            commitProcess.once("exit", code => {
-                                if (code == 0) {
-                                    this.logger.forTask(taskId).info("Successfully committed changes!");
-                                    resolve(true);
-                                }
-                                else {
-                                    this.logger.forTask(taskId).error(`Changes not committed: Code ${code}`);
-                                    resolve(false);
-                                }
-                            });
-                            commitProcess.once("error", (error) => {
-                                this.logger.forTask(taskId).error(`Error committing changes: ${error}`);
-                                reject();
-                            });
-                        }
-                        else {
-                            this.logger.forTask(taskId).error(`Error staging changes: ${code}`);
-                            resolve(false);
-                        }
-                    });
-                    addProcess.once("error", (error) => {
-                        this.logger.forTask(taskId).error(`Error staging changes: ${error}`);
-                        reject();
-                    });
+                    }
+                    const comms = [
+                        {
+                            // Step 1: stage your commits
+                            command: "git",
+                            args: ["add", "--all"],
+                            options: { stdio: "inherit", cwd: dir },
+                        },
+                        {
+                            //Step 2: commit the tracked changes
+                            command: "git",
+                            args: ["commit", "-a", "-m", message],
+                            options: { stdio: "inherit", cwd: dir },
+                        },
+                        {
+                            //Step 3: Remove whatever remote used to be called "origin"
+                            command: "git",
+                            args: ["remote", "remove", "origin"],
+                            options: { stdio: "inherit", cwd: dir },
+                        },
+                        {
+                            //Step 4: Set new repo as "origin"
+                            command: "git",
+                            args: [
+                                "remote",
+                                "add",
+                                "origin",
+                                `https://github.com/${owner}/${repo}`,
+                            ],
+                            options: { stdio: "inherit", cwd: dir },
+                        },
+                        {
+                            //Step 4: Verify the remote URL
+                            command: "git",
+                            args: ["remote", "-v"],
+                            options: { stdio: "inherit", cwd: dir },
+                        },
+                        {
+                            //Step 5: Push changes from local to remote
+                            command: "git",
+                            args: ["push", "origin", branchName],
+                            options: { stdio: "inherit", cwd: dir },
+                        },
+                    ];
+                    for (const comm of comms) {
+                        yield this.spawnAsync({
+                            command: comm.command,
+                            args: comm.args,
+                            options: comm.options,
+                        });
+                    }
+                    resolve(true);
                 }));
             }
             catch (error) {
                 this.logger.forTask(taskId).error(`Error committing: ${error}`);
-                return new Promise((resolve, reject) => { reject(); });
+                return new Promise((resolve, reject) => {
+                    reject();
+                });
             }
         });
     }
@@ -357,11 +387,13 @@ export default class GithubUtils {
                     const comm = {
                         command: "git",
                         args: ["rev-parse", "--is-inside-work-tree"],
-                        options: { stdio: 'inherit', cwd: dir }
+                        options: { stdio: "inherit", cwd: dir },
                     };
                     const code = yield this.spawnAsync(comm);
                     if (code !== 0) {
-                        this.logger.forTask(taskId).error(`Cannot validate local repo:\nError code ${code}`);
+                        this.logger
+                            .forTask(taskId)
+                            .error(`Cannot validate local repo:\nError code ${code}`);
                         resolve(false);
                     }
                     else {
@@ -374,9 +406,10 @@ export default class GithubUtils {
                 this.logger
                     .forTask(taskId)
                     .error(`Error validating local repo: ${error}`);
-                return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () { reject(); }));
+                return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                    reject();
+                }));
             }
-            ;
         });
     }
     createPR(baseBranch, branchName, title, body, gitProcess) {

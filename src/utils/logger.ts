@@ -4,17 +4,26 @@ export enum LogLevel {
   WARNING = "WARNING",
   ERROR = "ERROR",
 }
+const colors = {
+  reset: "\x1b[0m",
+  red: "\x1b[31m",
+  green: "\x1b[32m",
+  yellow: "\x1b[33m",
+  blue: "\x1b[34m",
+  cyan: "\x1b[36m",
+  white: "\x1b[37m",
+};
 
 export default class TaskLogger {
-/**
- * TaskLogger
- * @class
- * @classdesc Custom logger for tasks with different log levels.
- * @name TaskLogger
- */
+  /**
+   * TaskLogger
+   * @class
+   * @classdesc Custom logger for tasks with different log levels.
+   * @name TaskLogger
+   */
   private logLevel!: LogLevel | string;
   private taskId!: string | null;
-  
+
   /**
    * Builds a new task logger
    * @param {Object} args - Named arguments
@@ -24,7 +33,7 @@ export default class TaskLogger {
    */
   constructor({
     logLevel = LogLevel.INFO,
-    taskId = null,
+    taskId,
   }: {
     logLevel: LogLevel | string;
     taskId: string | null;
@@ -39,8 +48,8 @@ export default class TaskLogger {
       logLevel = levels[logLevel.toUpperCase()];
     } else {
       this.logLevel = logLevel;
-      this.taskId = taskId;
     }
+    this.taskId = taskId ? taskId : null;
   }
 
   private logLevelPriority: { [level in LogLevel]: number } = {
@@ -52,15 +61,23 @@ export default class TaskLogger {
 
   /**
    * Gets the log message prefix based on the log level and task ID.
-   * 
+   *
    * @param {LogLevel} level - The log level for the log message.
    * @returns {string} The log message prefix.
    * @private
    */
   private getLogPrefix(level: LogLevel): string {
     const timestamp = new Date().toISOString();
-    const taskInfo = this.taskId ? ` [Task ID: ${this.taskId}]` : "";
-    return `[${timestamp}] [${level.toUpperCase()}]${taskInfo}: `;
+    const levelColors: { [key: string]: string } = {
+      debug: "\x1b[33m", // Yellow
+      error: "\x1b[31m", // Red
+      info: "\x1b[32m", // Green
+      warning: "\x1b[33m", // Yellow (Use the same as debug, or choose a different orange color)
+    };
+    const levelColor = levelColors[level.toLowerCase()] || colors.reset;
+    return `[${timestamp}] ${colors.cyan}[${
+      this.taskId
+    }] ${levelColor}[${level.toUpperCase()}] ${colors.reset}: `;
   }
 
   /**

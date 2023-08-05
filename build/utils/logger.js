@@ -5,6 +5,15 @@ export var LogLevel;
     LogLevel["WARNING"] = "WARNING";
     LogLevel["ERROR"] = "ERROR";
 })(LogLevel || (LogLevel = {}));
+const colors = {
+    reset: '\x1b[0m',
+    red: '\x1b[31m',
+    green: '\x1b[32m',
+    yellow: '\x1b[33m',
+    blue: '\x1b[34m',
+    cyan: '\x1b[36m',
+    white: '\x1b[37m',
+};
 export default class TaskLogger {
     /**
      * Builds a new task logger
@@ -13,7 +22,7 @@ export default class TaskLogger {
      * @param {string} args.taskId - optional task uuid
      * @memberof TaskLogger
      */
-    constructor({ logLevel = LogLevel.INFO, taskId = null, }) {
+    constructor({ logLevel = LogLevel.INFO, taskId, }) {
         this.logLevelPriority = {
             [LogLevel.DEBUG]: 1,
             [LogLevel.INFO]: 2,
@@ -31,8 +40,8 @@ export default class TaskLogger {
         }
         else {
             this.logLevel = logLevel;
-            this.taskId = taskId;
         }
+        this.taskId = taskId ? taskId : null;
     }
     /**
      * Gets the log message prefix based on the log level and task ID.
@@ -43,8 +52,14 @@ export default class TaskLogger {
      */
     getLogPrefix(level) {
         const timestamp = new Date().toISOString();
-        const taskInfo = this.taskId ? ` [Task ID: ${this.taskId}]` : "";
-        return `[${timestamp}] [${level.toUpperCase()}]${taskInfo}: `;
+        const levelColors = {
+            debug: '\x1b[33m',
+            error: '\x1b[31m',
+            info: '\x1b[32m',
+            warning: '\x1b[33m', // Yellow (Use the same as debug, or choose a different orange color)
+        };
+        const levelColor = levelColors[level.toLowerCase()] || colors.reset;
+        return `[${timestamp}] ${colors.cyan}[${this.taskId}] ${levelColor}[${level.toUpperCase()}] ${colors.reset}: `;
     }
     /**
      * Checks if the log message should be logged based on its log level and the TaskLogger's log level.
