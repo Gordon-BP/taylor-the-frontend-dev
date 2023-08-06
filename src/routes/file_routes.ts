@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
 import express from "express";
 import * as v from "../utils/validators.js";
-import TaskLogger from "../utils/logger.js";
 import bodyParser from "body-parser";
 import pkg from "dree";
 import path from "node:path";
+import winston from "winston";
 import { open, mkdir, rm } from "node:fs/promises";
 
 export const fs_router = express.Router();
@@ -20,6 +20,25 @@ export interface MyTree {
  isSymbolicLink?: boolean;
  children?: MyTree[] | undefined;
 }
+const logger = winston.createLogger({
+  level: 'debug',
+  format: winston.format.json(),
+  defaultMeta: { service: 'file-service' },
+  transports: [
+    new winston.transports.File({ filename: 'error.log', level: 'error' }),
+    new winston.transports.File({ filename: 'combined.log' }),
+  ],
+});
+if (process.env.NODE_ENV !== 'production') {
+  logger.add(new winston.transports.Console({
+    format: winston.format.simple(),
+  }));
+}
+/**
+ * Helper function to remove unnecessary fields from file trees
+ * @param tree the full file tree
+ * @returns a trimmed file tree
+ */
 function cleanTree(tree: MyTree): MyTree {
     const newTree = { ...tree };
     if (
@@ -40,10 +59,11 @@ function cleanTree(tree: MyTree): MyTree {
      * Status route / smoke signal
      * @name get/status
      * @function
-     * @memberof module:App~mainfs_router
+     * @memberof module:App~router
      * @inner
      */
 fs_router.get("/status", (req: Request, res: Response) => {
+  logger.debug("Status OK")
     res.json({
       message: "OK",
     });
@@ -70,29 +90,24 @@ fs_router.get("/status", (req: Request, res: Response) => {
       const { owner, repo, branchName } = req.params;
       const { filePath, data, taskId } = req.body;
       const p = path.join("./repos", owner, repo, branchName, filePath);
-      const log = new TaskLogger({ logLevel: "info", taskId: taskId });
+      logger.debug("Writing new file...")
       const handle = await open(p, "w").catch(async (error: any) => {
         if (error.code && error.code == "ENOENT") {
-          log.info(`Creating new file or directory at ${filePath}`);
+          logger.debug(`File ${p} does not exist, creating file...`)
           await mkdir(path.dirname(p));
           return open(p, "w");
         } else {
-          log.error(`Unknown error while writing file: ${error}`);
-          return null;
-        }
-      });
-      if (!handle) {
-        res.status(500).json({
-          message: "Error writing file- see logs for details",
-        });
-      } else {
+          logger.error(`Error writing to file: ${error}`)
+          res.status(500).json({
+            message: `Error writing to file: ${error}`,
+        })
+      }});
         handle!.writeFile(data);
         handle!.close();
-        log.info(`Success write to file at ${p}`);
+        logger.debug("File write successful")
         res.status(200).json({
           message: "File write successful",
         });
-      }
       
     },
   );
@@ -111,33 +126,29 @@ fs_router.get("/status", (req: Request, res: Response) => {
     v.validateTaskId,
     (req: Request, res: Response) => {
       const { owner, repo, branchName } = req.params;
-      const { taskId, filePath } = req.body;
-      const log = new TaskLogger({logLevel:'debug', taskId:taskId})
+      const { filePath } = req.body;
       const p = path.join("./repos", owner, repo, branchName, filePath);
-      try {
+      logger.debug("Deleting file..")
         rm(p)
           .then((err) => {
             if (err != null) {
-              log.error(`Error deleting file ${p} ${err}`);
+              logger.error(`Error deleting file ${p} ${err}`)
               res.status(500).json({
                 message: `Error deleting file ${p} ${err}`,
               });
             } else {
-              log.info(`File ${p} successfully deleted`);
+              logger.debug("File successfully deleted")
               res.status(200).json({
                 message: "File successfully deleted",
               });
             }
           })
           .catch((err) => {
-            log.error(`Error while executing rm: ${err}`);
+            logger.error(`Error deleting file ${p} ${err}`)
             res.status(500).json({
               message: `Error deleting file ${p} ${err}`,
             });
           });
-      } catch (error: any) {
-        log.error(`rm encountered an error:${error}`);
-      }
     },
   );
   /**
@@ -155,10 +166,8 @@ fs_router.get("/status", (req: Request, res: Response) => {
     v.validateTaskId,
     async (req: Request, res: Response) => {
       const { owner, repo, branchName } = req.params;
-      const { taskId } = req.body;
-      const log = new TaskLogger({ logLevel: "debug", taskId: taskId });
       const p = path.join("./repos", owner, repo, branchName);
-      try {
+      logger.debug("Creating directory tree...")
         pkg
           .scanAsync(p, {
             stat: false,
@@ -169,23 +178,22 @@ fs_router.get("/status", (req: Request, res: Response) => {
           })
           .then((tree) => {
             if (tree) {
-              log.debug("Tree generated");
+              logger.debug("Tree successfully generated")
               res.status(200).json({
-                tree: cleanTree(tree),
+                message:"Tree successfully generated",
+                data: cleanTree(tree),
               });
             } else {
-              log.error("Failed to generate tree");
+              logger.error(`Error while scanning directory tree`)
               res
                 .status(500)
-                .json({ message: "Error generating directory tree" });
+                .json({ message: `Error while scanning directory tree` });
             }
-          });
-      } catch (err: any) {
-        log.error(`Error while running tree:${err}`);
+          }).catch((err: any)=>{
+        logger.error(`Error while running tree:${err}`)
         res.status(500).json({ message: `Error while running tree:${err}` });
-      }
-    },
-  );
+      });
+    });
   /**
    * Reads a file
    * TODO: Add validation middleware
@@ -201,37 +209,37 @@ fs_router.get("/status", (req: Request, res: Response) => {
     v.validateTaskId,
     async (req: Request, res: Response) => {
       const { owner, repo, branchName, filePath } = req.params;
-      const { taskId } = req.body;
-      const log = new TaskLogger({ logLevel: "info", taskId: taskId });
       const p = path.join("./repos", owner, repo, branchName, filePath);
+      logger.debug("Fetching file...")
       try {
         await open(p, "r+").then(async (fd) => {
           if (fd) {
             fd.readFile("utf8").then((data) => {
               if (data) {
-                log.info(`Successfully read file ${filePath}`);
+                logger.debug("File read success")
                 res.status(200).json({
+                  message:"File read success",
                   data: data,
                 });
               } else {
-                log.error(`Cannot read file ${filePath}`);
+                logger.debug(`Cannot read file ${filePath}`)
                 res.status(500).json({
-                  message: `Cannot read the file`,
+                  message: `Cannot read file ${filePath}`,
                 });
               }
             });
             fd.close();
           } else {
-            log.error(`Cannot open file ${filePath}`);
+            logger.error(`Cannot open file ${filePath}`)
             res.status(500).json({
               message: `Cannot open file ${filePath}`,
             });
           }
         });
-      } catch (error) {
-        log.error(`Error while reading file:${error}`);
+      } catch (err) {
+        logger.error(`Error while reading file:${err}`)
         res.status(500).json({
-          message: `Error while reading file:${error}`,
+          message: `Error while reading file:${err}`,
         });
       }
     },

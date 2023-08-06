@@ -8,7 +8,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "tsc && node ./build/index.js",
+    "dev": "tsc && bash auth.sh && node ./build/index.js",
     "test": "jest --verbose true /build/tests/ --silent=false",
     "build_docs": "node_modules/.bin/jsdoc -r src/App.ts -c jsdoc.conf.json",
     "build_tests": "tsc ./tests/*.test.ts --outDir ./build/tests/ --esModuleInterop true",
@@ -62,10 +62,14 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
+    "@types/axios": "^0.14.0",
+    "axios": "^1.4.0",
     "body-parser": "^1.20.2",
     "dree": "^4.5.5",
     "express": "^4.18.2",
-    "langchain": "^0.0.121"
+    "langchain": "^0.0.121",
+    "openai": "^3.3.0",
+    "winston": "^3.10.0"
   },
   "directories": {
     "test": "tests"

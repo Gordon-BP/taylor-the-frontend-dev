@@ -1,0 +1,2 @@
+source process.env
+jwt encode -A RS256 -i $GITHUB_APP_ID -S @$GITHUB_APP_PRIVATE_KEY -e 60

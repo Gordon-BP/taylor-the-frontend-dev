@@ -2,22 +2,38 @@ import { Request, Response } from "express";
 import express from "express";
 import GithubUtils from "../utils/github_utils.js";
 import * as v from "../utils/validators.js";
-import TaskLogger from "../utils/logger.js";
+import winston from "winston";
 import bodyParser from "body-parser";
 import path from "node:path";
 /**
  * Github routes!
+ * @module gh_api
  */
 export const gh_router = express.Router();
 gh_router.use(bodyParser.json());
+const logger = winston.createLogger({
+  level: 'debug',
+  format: winston.format.json(),
+  defaultMeta: { service: 'github-service' },
+  transports: [
+    new winston.transports.File({ filename: 'error.log', level: 'error' }),
+    new winston.transports.File({ filename: 'combined.log' }),
+  ],
+});
+if (process.env.NODE_ENV !== 'production') {
+  logger.add(new winston.transports.Console({
+    format: winston.format.simple(),
+  }));
+}
 /**
  * Status route / smoke signal
  * @name get/status
  * @function
- * @memberof module:gh_utils
+ * @memberof module:gh_api
  * @inner
  */
 gh_router.get("/status", (req: Request, res: Response) => {
+  logger.debug("Status OK")
   res.json({
     message: "OK",
   });
@@ -26,7 +42,7 @@ gh_router.get("/status", (req: Request, res: Response) => {
  * Clones a Github repo to the bot's directory
  * @name post/clone
  * @function
- * @memberof module:gh_utils
+ * @memberof module:gh_api
  * @inner
  * @param {string} owner - the Github repo's owner
  * @param {string} repo - the repo name
@@ -40,8 +56,8 @@ gh_router.post(
   async (req: Request, res: Response) => {
     const { owner, repo, baseBranch, taskId } = req.body;
     const github = new GithubUtils();
-    const log = new TaskLogger({ logLevel: "info", taskId: taskId });
     const p = path.join("./repos", owner, repo, baseBranch);
+    logger.debug(`Cloning Repo ${owner}/${repo}`)
     try {
       const success = await github.cloneRepo({
         owner: owner,
@@ -49,21 +65,21 @@ gh_router.post(
         baseBranch: baseBranch,
         taskId: taskId,
       });
-      if (success) {
-        log.info(`Successfully cloned branch ${baseBranch} to ${p}`);
+      if (success == true) {
+        logger.debug(`Successfully cloned branch ${baseBranch} to ${p}`);
         res.status(200).json({
-          workDir: `./repos/${owner}/${repo}/${baseBranch}`,
+          message: `Successfully cloned branch ${baseBranch} to ${p}`,
         });
       } else {
-        log.error(`Failed to clone repo ${owner}/${repo}`);
+        logger.debug(`Failed to clone repo ${owner}/${repo} ${success}`)
         res.status(500).json({
-          message: "The server encountered an unknown error",
+          message: `Failed to clone repo ${owner}/${repo}`,
         });
       }
     } catch (err: any) {
-      log.error(`Error while cloning repo:${err}`);
+      logger.error(`Error while cloning repo:${err}`)
       res.status(500).json({
-        message: `Error encountered:${err}`,
+        message: `Error while cloning repo:${err}`,
       });
     }
   },
@@ -73,7 +89,7 @@ gh_router.post(
  * If the repo has not already been cloned, it is cloned automatically.
  * @name post/branch
  * @function
- * @memberof module:gh_utils
+ * @memberof module:gh_api
  * @inner
  * @param {string} baseBranch - the base branch (typically main or master)
  * @param {string} branchName - name for the new branch
@@ -87,8 +103,8 @@ gh_router.post(
     const { owner, repo } = req.params;
     const { branchName, baseBranch, taskId } = req.body;
     const github = new GithubUtils();
-    const log = new TaskLogger({ logLevel: "info", taskId: taskId });
     const p = path.join("./repos", owner, repo, branchName);
+    logger.debug(`Creating new branch ${branchName} on ${owner}/${repo}`)
     github
       .createBranch({
         owner: owner,
@@ -98,20 +114,20 @@ gh_router.post(
         taskId: taskId,
       })
       .then((result) => {
-        if (result) {
-          log.info(`Branch successfully created at `);
+        if (result == true) {
+          logger.debug(`Branch successfully created at ${p}`)
           res.status(200).json({
-            workDir: p,
+            message: `Branch successfully created at ${p}`,
           });
         } else {
-          log.error(`Branch creation failed at ${p}`);
+          logger.debug(`Branch creation failed ${result}`)
           res.status(500).json({
-            message: "Branch failed to be created",
+            message: `Branch creation failed ${result}`,
           });
         }
       })
       .catch((err) => {
-        log.error(`Error while creating branch:${err}`);
+        logger.error(`Error creating branch:${err}`)
         res.status(500).json({
           message: `Error creating branch:${err}`,
         });
@@ -122,7 +138,7 @@ gh_router.post(
  * Stages, commits, and pushes changes to the remote branch
  * @name post/commit
  * @function
- * @memberof module:gh_utils
+ * @memberof module:gh_api
  * @inner
  * @param {string} message - the commit message
  * @param {string} taskId - which task this process is for
@@ -135,8 +151,8 @@ gh_router.post(
     const { owner, repo, branchName } = req.params;
     const { message, taskId } = req.body;
     const github = new GithubUtils();
-    const log = new TaskLogger({ logLevel: "info", taskId: taskId });
     const p = path.join("./repos", owner, repo, branchName);
+    logger.debug("Preparing to add, commit, and push changes...")
     github
       .commit({
         owner: owner,
@@ -147,20 +163,20 @@ gh_router.post(
         taskId: taskId,
       })
       .then((result) => {
-        if (result) {
-          log.info("Commit successful!");
+        if (result == true) {
+          logger.debug("Commit successful")
           res.status(200).json({
             message: "Commit successful",
           });
         } else {
-          log.error("Commit failed");
+          logger.debug(`Commit failed ${result}`)
           res.status(500).json({
-            message: "Commit failed",
+            message: `Commit failed ${result}`,
           });
         }
       })
       .catch((err) => {
-        log.error(`Error committing changes: ${err}`);
+        logger.error( `Error committing changes: ${err}`)
         res.status(500).json({
           message: `Error committing changes: ${err}`,
         });
@@ -171,7 +187,7 @@ gh_router.post(
  * Gets a specific issue from the repo
  * @name get/issue
  * @function
- * @memberof module:gh_utils
+ * @memberof module:gh_api
  * @inner
  * @param {string} num - the issue number
  * @param {string} taskId - which task this process is for
@@ -184,8 +200,7 @@ gh_router.get(
     const { owner, repo } = req.params;
     const { num, taskId } = req.body;
     const github = new GithubUtils();
-    const log = new TaskLogger({ logLevel: "info", taskId: taskId });
-    log.debug(`Fetching issue ${num} from ${owner}/${repo}`);
+    logger.debug(`Fetching issue ${num} from ${owner}/${repo}`)
     await github
       .getIssueFromRepo({
         owner: owner,
@@ -195,19 +210,20 @@ gh_router.get(
       })
       .then((result) => {
         if (typeof result == "object") {
-          log.info(`Successfully fetched issue ${num}`);
+          logger.debug(`Successfully fetched issue ${num}`)
           res.status(200).json({
+            message:`Successfully fetched issue ${num}`,
             data: result,
           });
         } else {
-          log.error(`Failed to fetch issue: ${result}`);
+          logger.debug(`Failed to fetch issue: ${result}`)
           res.status(500).json({
             message: `Failed to fetch issue: ${result}`,
           });
         }
       })
       .catch((err) => {
-        log.error(`Error while fetching issue: ${err}`);
+        logger.error(`Error while fetching issue: ${err}`)
         res.status(500).json({
           message: `Error while fetching issue: ${err}`,
         });
@@ -218,7 +234,7 @@ gh_router.get(
  * Creates a new pull request
  * @name post/commit
  * @function
- * @memberof module:gh_utils
+ * @memberof module:gh_api
  * @inner
  * @param {string} title - the PR title
  * @param {string} body - the PR body/description
@@ -237,9 +253,8 @@ gh_router.post(
     const { owner, repo, branchName } = req.params;
     const { title, body, baseBranch, num, taskId } = req.body;
     const github = new GithubUtils();
-    const log = new TaskLogger({ logLevel: "info", taskId: taskId });
     const p = path.join("./repos", owner, repo, branchName);
-    log.debug(`Creating pull request from ${branchName} to ${baseBranch}`);
+    logger.debug(`Creating PR from ${branchName} to ${baseBranch} on ${owner}/${repo}...`)
     await github
       .createPR({
         owner: owner,
@@ -252,17 +267,22 @@ gh_router.post(
         taskId: taskId,
       })
       .then((success) => {
-        if (success) {
-          log.info(`Successfully created pull request`);
+        if (success == true) {
+          logger.debug("Successfully created pull request")
           res.status(200).json({
             message: "Successfully created pull request",
           });
         } else {
-          log.error("Could not make pull request");
+          logger.debug(`Could not make pull request ${success}`)
           res.status(500).json({
-            message: "Could not make pull request",
+            message: `Could not make pull request ${success}`,
           });
         }
+      }).catch(err =>{
+        logger.error(`Error making pull request: ${err}`)
+        res.status(500).json({
+          message:`Error making pull request: ${err}`
+        })
       });
   },
 );
