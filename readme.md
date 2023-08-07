@@ -14,6 +14,7 @@ App ID 364693
 - [x] Listen for pull request updates
 - [x] Comment on issue
 - [x] auth as app <- BIG WIN
+
 ✅ DONE WITH GITHUB ✅
 
 
@@ -23,6 +24,7 @@ App ID 364693
 - [x] Delete File
 - [x] Get Directory Tree
 - [x] Tests for file skills
+
 ✅ DONE WITH PRIMITIVES ✅
 
 **Other Utilities**
@@ -40,6 +42,7 @@ App ID 364693
 - [x] Answer questions
 - [x] Use all info to make task
 - [x] Return task as single string
+
 ✅ DONE WITH TASK GENERATION ✅ (for now)
 
 **Code Generation**
