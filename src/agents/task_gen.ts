@@ -1,121 +1,168 @@
 import { OpenAI } from "langchain/llms/openai";
 import { PromptTemplate } from "langchain/prompts";
 import { LLMChain } from "langchain/chains";
+import { writeFile } from "node:fs/promises";
+import path from "path";
 import winston from "winston";
-import axios, { AxiosResponse, AxiosError, Axios } from "axios";
-import Task, { TaskStatus } from "../utils/Task";
+import axios, { AxiosRequestConfig } from "axios";
+import Task, { TaskStatus } from "../utils/Task.js";
+import { readFile } from "fs/promises";
+import { ChainValues } from "langchain/dist/schema";
 //TODO: Change this to be configurable from env
-const endpoint = "localhost:3000/app/v1"
-
+const endpoint = "http://127.0.0.1:3000/app/v1";
+interface QuestionAnswer {
+    question: string;
+    answer: string;
+  }
 /**
- * Decomposes the issue into a dynamic series of tasks
+ * @class
  */
-export default class TaskGenerator{
-    task:Task
-    logger: winston.Logger
-    question_model?: string; //model that generates questions
-    answer_model?: string; //model that answers generated questions
-    task_model?:string; //model that makes the next task, should be powerful
-    docs_vectorstore?: string //but really langchain.Vectorstore
-    constructor(task:Task){
-        this.task = task
-        let {owner, repo, baseBranch, id} = task
-        this.logger = winston.createLogger({
-            level: 'info',
-            format: winston.format.json(),
-            defaultMeta: { service: 'file-service' },
-            transports: [
-              new winston.transports.File({ filename: `./repos/${owner}/${repo}/error.log`, level: 'error' }),
-              new winston.transports.File({ filename: `./repos/${owner}/${repo}/env_info.txt`, level:"info" }),
-              new winston.transports.File({ filename: `./repos/${owner}/${repo}/combined.log` }),
-            ],
-          });
-          if (process.env.NODE_ENV !== 'production') {
-            this.logger.add(new winston.transports.Console({
-              format: winston.format.simple(),
-            }));
-          }
-          this.init(task)
+export default class TaskGenerator {
+  task: Task;
+  logger: winston.Logger;
+  question_model?: string; //model that generates questions
+  answer_model?: string; //model that answers generated questions
+  task_model?: string; //model that makes the next task, should be powerful
+  docs_vectorstore?: string; //but really langchain.Vectorstore
+  constructor(task: Task) {
+    this.task = task;
+    this.logger = winston.createLogger({
+      level: "info",
+      format: winston.format.combine(
+        winston.format.label({label:this.task.id}),
+        winston.format.timestamp(),
+        winston.format.colorize(),
+        winston.format.json()
+      ),
+      defaultMeta: { service: "task-gen" },
+      transports: [
+        new winston.transports.File({
+          filename: `./repos/${task.owner}/${task.repo}/error.log`,
+          level: "error",
+        }),
+        new winston.transports.File({
+          filename: `./repos/${task.owner}/${task.repo}/combined.log`,
+          level: "silly",
+        }),
+      ],
+    });
+    if (process.env.NODE_ENV !== "production") {
+      this.logger.add(
+        new winston.transports.Console({
+          format: winston.format.simple(),
+        }),
+      );
     }
-    private async init(task:Task){
-        let {owner, repo, baseBranch, id} = task
-        // Clone the repo
-          //Initialize the environment
-          this.logger.debug("Cloning repo...")
-        axios.post(
-            `${endpoint}/github/clone`,
-            {owner:owner,
-            repo:repo,
-        baseBranch:baseBranch,
-    taskId:id}).then(response=>{
-        if(response.status == 200){
-            this.logger.info(response.data.message)
-            //Make a new branch
-            this.logger.debug("Making a new branch...")
-            const branchName = `Taylor_Issue_${task.baseIssue}`
-            axios.post(
-                `${endpoint}/github/${owner}/${repo}/branch`,
-                {branchName:branchName,
-                baseBranch:baseBranch,
-            taskId:task.id}).then(response =>{
-                if(response.status == 200){
-                    this.logger.info(response.data.message)
-                    this.task.status = TaskStatus.Queued
-                }else{
-                    this.logger.error(`Could not create branch: ${response}`)
-                }
-            }).catch(err =>{
-                this.logger.error(`Error creating branch: ${err}`)
+  }
+  /**
+   * Initialize the local environment by cloning the repo,
+   * creating a branch, and making a new logger
+   * @param task
+   */
+  public async init(task: Task) {
+    const { owner, repo, baseBranch, id } = task;
+    this.start()
+    this.logger.debug("Cloning repo...");
+    const cloneConfig: AxiosRequestConfig = {
+      method: "POST",
+      url: `${endpoint}/github/clone`,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: {
+        owner: owner,
+        repo: repo,
+        baseBranch: baseBranch,
+        taskId: task.id,
+      },
+    };
+
+    axios(cloneConfig)
+      .then((clone_results) => {
+        if (clone_results.status == 200) {
+          this.logger.info(clone_results.data.message);
+          this.logger.debug("Making a new branch...");
+          task.branchName = `Taylor_Issue_${task.baseIssue}`;
+
+          const branchConfig: AxiosRequestConfig = {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            url: `${endpoint}/github/${owner}/${repo}/branch`,
+            params: {
+              owner: owner,
+              repo: repo,
+            },
+            data: {
+              baseBranch: baseBranch,
+              branchName: task.branchName,
+              taskId: task.id,
+            },
+          };
+          axios(branchConfig)
+            .then((branch_results) => {
+              if (branch_results.status == 200) {
+                this.logger.info(branch_results.data.message);
+                this.task.status = TaskStatus.Queued;
+              } else {
+                this.logger.error(
+                  `Could not create branch: ${branch_results.data.message}`,
+                );
+              }
             })
-        } else{
-            this.logger.error(`Could not clone repo: ${response}`)
+            .catch((err) => {
+              this.logger.error(`Error creating branch: ${err}`);
+            });
+        } else {
+          this.logger.info(
+            `Could not clone repo: ${clone_results.data.message}`,
+          );
         }
-    }).catch(err =>{
-        this.logger.error(`Error cloning repo: ${err}`)
+      })
+      .catch((err) => {
+        this.logger.error(`Error cloning repo: ${err}`);
+      });
+  }
+  /**
+   * Generate a task if the Task obj is queued
+   */
+  private async start() {
+    var taskStatus = this.task.status
+    this.logger.debug(`This task is currently ${taskStatus}`)
+    if (taskStatus == TaskStatus.Queued) {
+      this.logger.info(`Beginning work on Task ${this.task.id}`);
+      const taskConfig:AxiosRequestConfig = {
+        method:'POST',
+        url:`${endpoint}/ai/genTask`,
+        headers:{
+            "Content-Type":"application/json"
+        },
+        params:{},
+        data:{task: this.task}
+    }
+    axios(taskConfig).then(response =>{
+        this.logger.info(`This is the task: ${response.data.data}`)
+    }).catch(err=>{
+        this.logger.debug(`Error generating task`)
     })
+  
+
+    } else if (taskStatus == TaskStatus.InProgress) {
+      this.logger.debug("Task is processing, waiting...");
+      await new Promise<void>((resolve) => {
+        setTimeout(() => {
+          resolve();
+        }, 10000);
+      }).then(resolve =>{this.start()});
+    } else if (
+        taskStatus == TaskStatus.Passed ||
+        taskStatus == TaskStatus.Pending ||
+        taskStatus == TaskStatus.Failed
+    ) {
+      this.logger.info(
+        `Cannot work on the task because it is ${this.task.status}`,
+      );
     }
-    
-    public async start(){
-        if(this.task.status == TaskStatus.Queued){
-            this.logger.info(`Beginning work on Task ${this.task.id}`)
-            var qna_context = await generateQuestions(this.task)
-        }
-        else if((this.task.status == TaskStatus.InProgress)){
-            this.logger.debug("Task is processing, waiting...")
-            await new Promise<void>((resolve) => {
-                setTimeout(() => {resolve()}, 30000)});
-        } else if(this.task.status == TaskStatus.Finished ||
-            this.task.status == TaskStatus.Pending){
-                this.logger.info(`Cannot work on the task because it is ${this.task.status}`)
-            }
-    }
+  }
 }
-
-
-/**
- * Chain that generates question-answer pairs that augment task context
- * @param task 
- */
-async function generateQuestions(task:Task){
-
-}
-/** 
-// We can construct an LLMChain from a PromptTemplate and an LLM.
-const model = new OpenAI({ temperature: 0 });
-const prompt = PromptTemplate.fromTemplate(
-  "What is a good name for a company that makes {product}?"
-);
-const chainA = new LLMChain({ llm: model, prompt });
-
-// The result is an object with a `text` property.
-const resA = await chainA.call({ product: "colorful socks" });
-console.log({ resA });
-// { resA: { text: '\n\nSocktastic!' } }
-
-// Since this LLMChain is a single-input, single-output chain, we can also `run` it.
-// This convenience method takes in a string and returns the value
-// of the output key field in the chain response. For LLMChains, this defaults to "text".
-const resA2 = await chainA.run("colorful socks");
-console.log({ resA2 });
-// { resA2: '\n\nSocktastic!' }
-*/

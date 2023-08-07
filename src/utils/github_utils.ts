@@ -1,10 +1,10 @@
-import { ChildProcess, spawn } from "child_process";
+import { ChildProcess, spawn, exec } from "child_process";
 import type { IssuesEvent } from "@octokit/webhooks-types";
 import { existsSync } from "fs";
 import { Writable } from "stream";
 import TaskLogger from "./logger.js";
 import path from "node:path";
-import {TaskStatus} from "./Task.js";
+import { TaskStatus } from "./Task.js";
 import Task from "./Task.js";
 import TaskGenerator from "../agents/task_gen.js";
 
@@ -13,7 +13,7 @@ interface SpawnCommands {
   args: Array<string>;
   options: object;
 }
-const issuesCommentedOn:number[] = []
+const issuesCommentedOn: number[] = [];
 export default class GithubUtils {
   /**
    * Creates a new GithubUtils
@@ -54,6 +54,34 @@ export default class GithubUtils {
       });
     }
   }
+  /**
+   * Auth Github
+   * logs in with the auth.sh script and a token
+   */
+  private async authGithub() {
+    return new Promise<boolean>((resolve, reject) => {
+      // Run the bash script using spawn
+      const authProcess = spawn("bash", ["auth.sh"]);
+      let token = "";
+      authProcess.stdout.on("data", (data) => {
+        token += data;
+      });
+      // Handle the process termination
+      authProcess.on("close", (code) => {
+        if (code === 0) {
+          resolve(true);
+        } else {
+          const error = new Error(`Bash script failed with code ${code}`);
+          reject(error);
+        }
+      });
+      // Handle any errors during execution
+      authProcess.on("error", (err) => {
+        reject(err);
+      });
+    });
+  }
+
   /**
    * Helper function to promiseify spawn() and chain multiple commands
    * @param {SpawnCommands} commandArgs - the command with args to run
@@ -161,16 +189,11 @@ export default class GithubUtils {
     branchName: string;
     taskId: string;
   }): Promise<boolean> {
-    const p = path.join("./repos", owner, repo, branchName);
+    const p = path.join("./repos", owner, repo, baseBranch);
     return new Promise(async (resolve, reject) => {
       try {
-        if (!existsSync(p)) {
-          await this.cloneRepo({
-            owner: owner,
-            repo: repo,
-            baseBranch: baseBranch,
-            taskId: taskId,
-          });
+        if(existsSync(path.join("./repos", owner, repo, branchName))){
+          resolve(false)
         }
         const isValidRepo = await this.checkGitRepository({
           dir: p,
@@ -230,20 +253,27 @@ export default class GithubUtils {
     taskId: string;
   }): Promise<boolean> {
     return new Promise(async (resolve, reject) => {
+      
       try {
+        await this.authGithub();
         const workDir = path.join("./repos", owner, repo, baseBranch);
+        if(existsSync(workDir)){
+          resolve(false)
+        }
         const gitProcess = spawn(
           "git",
           ["clone", `https://github.com/${owner}/${repo}`, workDir],
-          { stdio: "inherit", shell: true },
+          { stdio: "inherit" },
         );
         gitProcess.once("error", (err: any) => {
+          console.log(`Error checking for git repo: ${err}`);
           reject(err);
         });
         gitProcess.once("exit", (code) => {
           if (code === 0) {
             resolve(true);
           } else {
+            console.log(`Cannot check git repo: error code ${code}`);
             resolve(false);
           }
         });
@@ -327,21 +357,28 @@ export default class GithubUtils {
             options: { stdio: "inherit", cwd: dir },
           },
         ];
-        let promises:Promise<any>[] = []
+        const promises: Promise<any>[] = [];
         for (const comm of comms) {
-          promises.push(this.spawnAsync({
-            command: comm.command,
-            args: comm.args,
-            options: comm.options,
-          }));
+          promises.push(
+            this.spawnAsync({
+              command: comm.command,
+              args: comm.args,
+              options: comm.options,
+            }),
+          );
         }
-        Promise.all(promises).then(onResolve =>{
-          resolve(true);
-        }, onReject =>{
-          reject(onReject)
-        }).catch(err =>{
-          reject(err)
-        })
+        Promise.all(promises)
+          .then(
+            (onResolve) => {
+              resolve(true);
+            },
+            (onReject) => {
+              reject(onReject);
+            },
+          )
+          .catch((err) => {
+            reject(err);
+          });
       } catch (err) {
         reject(err);
       }
@@ -468,21 +505,28 @@ export default class GithubUtils {
     ];
     return new Promise<boolean>(async (resolve, reject) => {
       try {
-        let promises:Promise<any>[] = []
+        const promises: Promise<any>[] = [];
         for (const comm of comms) {
-          promises.push(this.spawnAsync({
-            command: comm.command,
-            args: comm.args,
-            options: comm.options,
-          }));
+          promises.push(
+            this.spawnAsync({
+              command: comm.command,
+              args: comm.args,
+              options: comm.options,
+            }),
+          );
         }
-        Promise.all(promises).then(onResolve =>{
-          resolve(true);
-        }, onReject =>{
-          reject(onReject)
-        }).catch(err =>{
-          reject(err)
-        })
+        Promise.all(promises)
+          .then(
+            (onResolve) => {
+              resolve(true);
+            },
+            (onReject) => {
+              reject(onReject);
+            },
+          )
+          .catch((err) => {
+            reject(err);
+          });
       } catch (err) {
         reject();
       }
@@ -491,63 +535,92 @@ export default class GithubUtils {
   /**
    * Comment on Issue
    */
-  public async postIssueComment(
-    {event, taskId}:{
-      event:IssuesEvent, taskId:string}){
+  public async postIssueComment({
+    event,
+    taskId,
+  }: {
+    event: IssuesEvent;
+    taskId: string;
+  }) {
     //es-lint ignore
-    let {number,title, body, user, state, comments, created_at, updated_at} = event.issue 
-    if(issuesCommentedOn.includes(number)){
-      return new Promise<boolean>(async (resolve, reject)=>{
-        resolve(false)
-      })
-    }
-    let {full_name, default_branch} = event.repository
-      const comms: SpawnCommands[] = [{
-        command: "bash",
-        args:["auth.sh"],
-        options:{}
-      },
-        {
-        command: "gh",
-        args: ["issue","comment",number.toString(),"-R", `https://github.com/${full_name}`, "-b", "OK I will work on this task"],
-        options: { stdio: "inherit"},
-      }];
+    const {
+      number,
+      title,
+      body,
+      user,
+      state,
+      comments,
+      created_at,
+      updated_at,
+    } = event.issue;
+    if (issuesCommentedOn.includes(number)) {
       return new Promise<boolean>(async (resolve, reject) => {
-        try {
-          let promises:Promise<any>[] = []
-          for (const comm of comms) {
-            promises.push(this.spawnAsync({
+        resolve(false);
+      });
+    }
+    const { full_name, default_branch } = event.repository;
+    const comms: SpawnCommands[] = [
+      {
+        command: "bash",
+        args: ["auth.sh"],
+        options: {},
+      },
+      {
+        command: "gh",
+        args: [
+          "issue",
+          "comment",
+          number.toString(),
+          "-R",
+          `https://github.com/${full_name}`,
+          "-b",
+          "OK I will work on this task",
+        ],
+        options: { stdio: "inherit" },
+      },
+    ];
+    return new Promise<boolean>(async (resolve, reject) => {
+      try {
+        const promises: Promise<any>[] = [];
+        for (const comm of comms) {
+          promises.push(
+            this.spawnAsync({
               command: comm.command,
               args: comm.args,
               options: comm.options,
-            }));
-          }
-          Promise.all(promises).then(onResolve =>{
-            let [owner, repo] = full_name.split("/")
-            const task = new Task({
-              description:`${title} - ${body}`,
-              owner:owner,
-              repo:repo,
-              baseBranch:default_branch,
-              baseIssue:number,
-              status:TaskStatus.Queued,
-              pastTasks:[],
-              started_at: created_at,
-              id:`Issue__${full_name}__${number}`
-          })
-          const tg = new TaskGenerator(task)
-          tg.start()
-            resolve(true);
-          }, onReject =>{
-            reject(onReject)
-          }).catch(err =>{
-            reject(err)
-          })
-        } catch (err) {
-          reject();
+            }),
+          );
         }
-      });
-    }
+        Promise.all(promises)
+          .then(
+            (onResolve) => {
+              const [owner, repo] = full_name.split("/");
+              const task = new Task({
+                description: `${title} - ${body}`,
+                owner: owner,
+                repo: repo,
+                baseBranch: default_branch,
+                baseIssue: number,
+                status: TaskStatus.Queued,
+                pastTasks: [],
+                started_at: created_at,
+                id: `Issue__${full_name}__${number}`,
+              });
+              const tg = new TaskGenerator(task);
+             tg.init(task)
+            },
+            (onReject) => {
+              reject(onReject);
+            },
+          )
+          .catch((err) => {
+            reject(err);
+          });
+      } catch (err) {
+        reject();
+      }
+    });
+  }
 
   /**
    * Comment on PR soon?

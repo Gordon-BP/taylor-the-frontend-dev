@@ -2,6 +2,7 @@
  * Validates API inputs for the app woohoooooooo~~~~
  */
 import { Request, Response, NextFunction } from "express";
+import Task from "./Task.js";
 
 /**
  * Validator for task IDs.
@@ -17,6 +18,7 @@ export function validateTaskId(
   } else {
     res.status(400).json({
       message: "missing taskId",
+      requestBody: req.body,
     });
   }
 }
@@ -50,32 +52,33 @@ export function validateReq(params: Array<string>, data: Array<string>): any {
 }
 
 /**
- *
  * Validator for writeFile route in {@link App}
  */
-export function validateWriteFile(
+export function validateTask(
   req: Request,
   res: Response,
   next: NextFunction,
 ) {
-  let missing_fields: Array<string> = [];
-  //check params
-  missing_fields = missing_fields.concat(
-    ["owner", "repo", "branchName"].filter((field) => {
-      req.params[field];
-    }),
-  );
-  //check body
-  missing_fields = missing_fields.concat(
-    ["filePath", "data", "taskId"].filter((field) => {
-      req.body[field];
-    }),
-  );
-  if (missing_fields.length != 0) {
-    return res
-      .status(400)
-      .json({ error: "Missing required fields", missing_fields });
+  if (req.body.task) {
+    let missing_fields: Array<string> = [];
+    const task_fields = ["baseBranch", "baseIssue",
+    "description","status", "pastTasks", "owner", "repo","started_at", "id"]
+    missing_fields = missing_fields.concat(
+      task_fields.filter((field) => {
+        req.body.task[field];
+      }),
+    );
+    if (missing_fields.length != 0) {
+      return res
+        .status(400)
+        .json({ error: "Task missing required fields", missing_fields });
+    } else {
+      next();
+    }
   } else {
-    next();
+    res.status(400).json({
+      message: "No task in payload",
+      requestBody: req.body,
+    });
   }
 }

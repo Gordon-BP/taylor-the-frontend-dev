@@ -35,16 +35,15 @@ App ID 364693
     INPUTS:
         1. Issue title and body
         2. Repo dir tree as JSON
-        3. Primitive skills
-        4. Possibly relevant skills from library
-        5. Possibly relevant web data
-        6. Past tasks and their results as JSON
+        3. Dynamic Q&A
+        4. Possibly relevant web data?
+        5. Past tasks and their results as JSON
     OUTPUTS:
         1. A single task
 - [ ] Web research retriever
     - will need to implement on your own with https://serpapi.com/integrations/node and LLM chain
 - [ ] HNSWlib indices https://js.langchain.com/docs/modules/data_connection/vectorstores/integrations/hnswlib
-    - jsdoc -X ./mylib/ > jsdoc-ast.json
+    - node_modules/.bin/jsdoc -c jsdoc.conf.json -X ./src > jsdoc-ast.json
     - consider what metadata to filter on https://js.langchain.com/docs/modules/data_connection/retrievers/how_to/self_query/hnswlib-self-query
 - [ ] Code generator
     INPUTS:
