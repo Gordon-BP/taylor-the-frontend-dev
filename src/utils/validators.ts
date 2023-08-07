@@ -1,5 +1,5 @@
 /**
- * Validates API inputs for the app woohoooooooo~~~~
+ * Validates API inputs for the app
  */
 import { Request, Response, NextFunction } from "express";
 import Task from "./Task.js";
@@ -54,15 +54,20 @@ export function validateReq(params: Array<string>, data: Array<string>): any {
 /**
  * Validator for writeFile route in {@link App}
  */
-export function validateTask(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export function validateTask(req: Request, res: Response, next: NextFunction) {
   if (req.body.task) {
     let missing_fields: Array<string> = [];
-    const task_fields = ["baseBranch", "baseIssue",
-    "description","status", "pastTasks", "owner", "repo","started_at", "id"]
+    const task_fields = [
+      "baseBranch",
+      "baseIssue",
+      "description",
+      "status",
+      "pastTasks",
+      "owner",
+      "repo",
+      "started_at",
+      "id",
+    ];
     missing_fields = missing_fields.concat(
       task_fields.filter((field) => {
         req.body.task[field];

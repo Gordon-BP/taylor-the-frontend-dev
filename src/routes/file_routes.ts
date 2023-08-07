@@ -166,7 +166,7 @@ fs_router.post(
   v.validateTaskId,
   async (req: Request, res: Response) => {
     const { owner, repo, branchName } = req.params;
-    const {taskId } = req.body
+    const { taskId } = req.body;
     const p = path.join("./repos", owner, repo, branchName);
     logger.debug("Creating directory tree...");
     pkg
@@ -179,12 +179,12 @@ fs_router.post(
       })
       .then((tree) => {
         if (tree) {
-          var ct:MyTree = cleanTree(tree)
+          const ct: MyTree = cleanTree(tree);
           logger.debug("Tree successfully generated");
-          logger.debug(JSON.stringify(ct))
+          logger.debug(JSON.stringify(ct));
           res.status(200).json({
             message: "Tree successfully generated",
-            data: ct
+            data: ct,
           });
         } else {
           logger.error(`Error while scanning directory tree`);

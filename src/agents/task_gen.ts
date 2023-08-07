@@ -11,9 +11,9 @@ import { ChainValues } from "langchain/dist/schema";
 //TODO: Change this to be configurable from env
 const endpoint = "http://127.0.0.1:3000/app/v1";
 interface QuestionAnswer {
-    question: string;
-    answer: string;
-  }
+  question: string;
+  answer: string;
+}
 /**
  * @class
  */
@@ -29,10 +29,10 @@ export default class TaskGenerator {
     this.logger = winston.createLogger({
       level: "info",
       format: winston.format.combine(
-        winston.format.label({label:this.task.id}),
+        winston.format.label({ label: this.task.id }),
         winston.format.timestamp(),
         winston.format.colorize(),
-        winston.format.json()
+        winston.format.json(),
       ),
       defaultMeta: { service: "task-gen" },
       transports: [
@@ -61,7 +61,7 @@ export default class TaskGenerator {
    */
   public async init(task: Task) {
     const { owner, repo, baseBranch, id } = task;
-    this.start()
+    this.start();
     this.logger.debug("Cloning repo...");
     const cloneConfig: AxiosRequestConfig = {
       method: "POST",
@@ -128,37 +128,39 @@ export default class TaskGenerator {
    * Generate a task if the Task obj is queued
    */
   private async start() {
-    var taskStatus = this.task.status
-    this.logger.debug(`This task is currently ${taskStatus}`)
+    const taskStatus = this.task.status;
+    this.logger.debug(`This task is currently ${taskStatus}`);
     if (taskStatus == TaskStatus.Queued) {
       this.logger.info(`Beginning work on Task ${this.task.id}`);
-      const taskConfig:AxiosRequestConfig = {
-        method:'POST',
-        url:`${endpoint}/ai/genTask`,
-        headers:{
-            "Content-Type":"application/json"
+      const taskConfig: AxiosRequestConfig = {
+        method: "POST",
+        url: `${endpoint}/ai/genTask`,
+        headers: {
+          "Content-Type": "application/json",
         },
-        params:{},
-        data:{task: this.task}
-    }
-    axios(taskConfig).then(response =>{
-        this.logger.info(`This is the task: ${response.data.data}`)
-    }).catch(err=>{
-        this.logger.debug(`Error generating task`)
-    })
-  
-
+        params: {},
+        data: { task: this.task },
+      };
+      axios(taskConfig)
+        .then((response) => {
+          this.logger.info(`This is the task: ${response.data.data}`);
+        })
+        .catch((err) => {
+          this.logger.debug(`Error generating task`);
+        });
     } else if (taskStatus == TaskStatus.InProgress) {
       this.logger.debug("Task is processing, waiting...");
       await new Promise<void>((resolve) => {
         setTimeout(() => {
           resolve();
         }, 10000);
-      }).then(resolve =>{this.start()});
+      }).then((resolve) => {
+        this.start();
+      });
     } else if (
-        taskStatus == TaskStatus.Passed ||
-        taskStatus == TaskStatus.Pending ||
-        taskStatus == TaskStatus.Failed
+      taskStatus == TaskStatus.Passed ||
+      taskStatus == TaskStatus.Pending ||
+      taskStatus == TaskStatus.Failed
     ) {
       this.logger.info(
         `Cannot work on the task because it is ${this.task.status}`,

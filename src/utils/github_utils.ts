@@ -192,8 +192,8 @@ export default class GithubUtils {
     const p = path.join("./repos", owner, repo, baseBranch);
     return new Promise(async (resolve, reject) => {
       try {
-        if(existsSync(path.join("./repos", owner, repo, branchName))){
-          resolve(false)
+        if (existsSync(path.join("./repos", owner, repo, branchName))) {
+          resolve(false);
         }
         const isValidRepo = await this.checkGitRepository({
           dir: p,
@@ -253,12 +253,11 @@ export default class GithubUtils {
     taskId: string;
   }): Promise<boolean> {
     return new Promise(async (resolve, reject) => {
-      
       try {
         await this.authGithub();
         const workDir = path.join("./repos", owner, repo, baseBranch);
-        if(existsSync(workDir)){
-          resolve(false)
+        if (existsSync(workDir)) {
+          resolve(false);
         }
         const gitProcess = spawn(
           "git",
@@ -266,14 +265,12 @@ export default class GithubUtils {
           { stdio: "inherit" },
         );
         gitProcess.once("error", (err: any) => {
-          console.log(`Error checking for git repo: ${err}`);
           reject(err);
         });
         gitProcess.once("exit", (code) => {
           if (code === 0) {
             resolve(true);
           } else {
-            console.log(`Cannot check git repo: error code ${code}`);
             resolve(false);
           }
         });
@@ -607,7 +604,7 @@ export default class GithubUtils {
                 id: `Issue__${full_name}__${number}`,
               });
               const tg = new TaskGenerator(task);
-             tg.init(task)
+              tg.init(task);
             },
             (onReject) => {
               reject(onReject);

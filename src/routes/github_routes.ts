@@ -73,7 +73,7 @@ gh_router.post(
           res.status(200).json({
             message: `Successfully cloned branch ${baseBranch} to ${p}`,
           });
-        } else if(success == false) {
+        } else if (success == false) {
           logger.debug(`Failed to clone repo ${owner}/${repo} ${success}`);
           res.status(200).json({
             message: `Repo already exists at ${owner}/${repo}`,
@@ -121,7 +121,7 @@ gh_router.post(
           res.status(200).json({
             message: `Branch successfully created at ${p}`,
           });
-        } else if(result == false){
+        } else if (result == false) {
           res.status(200).json({
             message: `Branch already exists at ${p}`,
           });

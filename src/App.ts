@@ -2,7 +2,7 @@ import express from "express";
 import TaskLogger from "./utils/logger.js";
 import { Request, Response } from "express";
 import { gh_router } from "./routes/github_routes.js";
-import {tg_router} from "./routes/task_route.js"
+import { tg_router } from "./routes/task_route.js";
 import bodyParser from "body-parser";
 import { fs_router } from "./routes/file_routes.js";
 import GithubUtils from "./utils/github_utils.js";
@@ -40,9 +40,9 @@ class App {
     this.express = express();
     this.mountRoutes();
   }
-/**
- * Mounts routes for files, github, and others
- */
+  /**
+   * Mounts routes for files, github, and others
+   */
   private mountRoutes(): void {
     const appRouter = express.Router();
     /**
@@ -96,7 +96,7 @@ class App {
     this.express.use("/app/v1", appRouter);
     this.express.use("/app/v1/github", gh_router);
     this.express.use("/app/v1/files", fs_router);
-    this.express.use("/app/v1/ai", tg_router)
+    this.express.use("/app/v1/ai", tg_router);
     this.express.use("/docs", express.static("./docs"));
   }
 }

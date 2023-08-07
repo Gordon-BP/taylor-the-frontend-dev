@@ -10,10 +10,10 @@
   "scripts": {
     "dev": "tsc && bash auth.sh && node ./build/index.js",
     "test": "jest --verbose true /build/tests/ --silent=false",
-    "build_docs": "node_modules/.bin/jsdoc -r src/App.ts -c jsdoc.conf.json",
+    "build_docs": "node_modules/.bin/jsdoc -r src/App.ts -c configs/jsdoc.conf.json",
     "build_tests": "tsc ./tests/*.test.ts --outDir ./build/tests/ --esModuleInterop true",
-    "lint_core": "eslint --ext .ts src/ --fix  ",
-    "lint_tests": "eslint --ext .ts tests/ --fix  ",
+    "lint_core": "eslint --ext .ts src/ --fix -c configs/.eslintrc.yml ",
+    "lint_tests": "eslint --ext .ts tests/ --fix c configs/.eslintrc.yml ",
     "spellcheck": "cspell \"src/**/*.ts\" && cspell \"tests/**/*.ts\""
   },
   "scopes": {
