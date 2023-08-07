@@ -1,0 +1,5 @@
+{"level":"error","message":"Error while scanning directory tree","service":"file-service"}
+{"level":"error","message":"Error while scanning directory tree","service":"file-service"}
+{"level":"error","message":"Error while reading file:Error: ENOENT: no such file or directory, open 'repos/Gordon-BP/taylor-test-repo/undefined/tree'","service":"file-service"}
+{"level":"error","message":"Error while reading file:Error: ENOENT: no such file or directory, open 'repos/Gordon-BP/taylor-test-repo/Taylor_Issue_69/tree'","service":"file-service"}
+{"level":"error","message":"Error while scanning directory tree","service":"file-service"}

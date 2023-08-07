@@ -1,16 +1,19 @@
-import { ChildProcess, spawn } from "child_process";
-import type { PullRequestEvent, IssuesEvent } from "@octokit/webhooks-types";
+import { ChildProcess, spawn, exec } from "child_process";
+import type { IssuesEvent } from "@octokit/webhooks-types";
 import { existsSync } from "fs";
 import { Writable } from "stream";
 import TaskLogger from "./logger.js";
 import path from "node:path";
+import { TaskStatus } from "./Task.js";
+import Task from "./Task.js";
+import TaskGenerator from "../agents/task_gen.js";
 
 interface SpawnCommands {
   command: string;
   args: Array<string>;
   options: object;
 }
-const issuesCommentedOn:number[] = []
+const issuesCommentedOn: number[] = [];
 export default class GithubUtils {
   /**
    * Creates a new GithubUtils
@@ -19,7 +22,6 @@ export default class GithubUtils {
    * @classdesc Utility class for dealing with github repositories
    */
   constructor() {}
-  logger = new TaskLogger({ logLevel: "info", taskId: "" });
   /**
    * Checks the GitHub CLI installation and logs the result to the console.
    * @param {ChildProcess} gitProcess - the child process in which to check GitHub installation.
@@ -30,46 +32,56 @@ export default class GithubUtils {
   }: {
     gitProcess: ChildProcess;
   }): Promise<boolean> {
-    this.logger
-      .forTask("Git-install-check")
-      .debug("Checking Github installation...");
     try {
       return new Promise((resolve, reject) => {
         gitProcess.stdin!.write("gh --version");
-        gitProcess.once("error", (error: any) => {
-          this.logger
-            .forTask("Git-install-check")
-            .error(`Error with Github installation:\n${error}`);
+        gitProcess.once("error", (err: any) => {
           //  gitProcess.stdin!.uncork()
-          reject();
+          reject(err);
         });
         gitProcess.once("exit", (code: number) => {
-          this.logger
-            .forTask("Git-install-check")
-            .debug("Github installation OK!");
           //    gitProcess.stdin!.uncork()
           if (code === 0) {
-            this.logger
-              .forTask("Git-install-check")
-              .info("Github is installed");
             resolve(true);
           } else {
-            this.logger
-              .forTask("Git-install-check")
-              .error(`Something is wrong with Github CLI: ${code}`);
             resolve(false);
           }
         });
       });
-    } catch (error) {
-      this.logger
-        .forTask("Git-install-check")
-        .error(`Error with Github: ${error}`);
+    } catch (err) {
       return new Promise<boolean>((resolve, reject) => {
-        reject();
+        reject(err);
       });
     }
   }
+  /**
+   * Auth Github
+   * logs in with the auth.sh script and a token
+   */
+  private async authGithub() {
+    return new Promise<boolean>((resolve, reject) => {
+      // Run the bash script using spawn
+      const authProcess = spawn("bash", ["auth.sh"]);
+      let token = "";
+      authProcess.stdout.on("data", (data) => {
+        token += data;
+      });
+      // Handle the process termination
+      authProcess.on("close", (code) => {
+        if (code === 0) {
+          resolve(true);
+        } else {
+          const error = new Error(`Bash script failed with code ${code}`);
+          reject(error);
+        }
+      });
+      // Handle any errors during execution
+      authProcess.on("error", (err) => {
+        reject(err);
+      });
+    });
+  }
+
   /**
    * Helper function to promiseify spawn() and chain multiple commands
    * @param {SpawnCommands} commandArgs - the command with args to run
@@ -106,8 +118,6 @@ export default class GithubUtils {
     taskId: string;
     num: string;
   }): Promise<object> {
-    const log = new TaskLogger({ logLevel: "debug", taskId });
-    log.info(`Fetching issue from ${owner}/${repo}...`);
     const p = path.join("./repos", owner, repo);
     return new Promise((resolve, reject) => {
       const gitProcess = spawn(
@@ -131,9 +141,8 @@ export default class GithubUtils {
         },
       });
       gitProcess.stdout?.pipe(writableStream);
-      gitProcess.once("error", (error) => {
-        log.error(`Error fetching issue from ${owner}/${repo}:\n${error}`);
-        reject(error);
+      gitProcess.once("error", (err) => {
+        reject(err);
       });
 
       gitProcess.once("exit", (code) => {
@@ -180,59 +189,38 @@ export default class GithubUtils {
     branchName: string;
     taskId: string;
   }): Promise<boolean> {
-    const log = new TaskLogger({ logLevel: "debug", taskId: taskId });
-    const p = path.join("./repos", owner, repo, branchName);
+    const p = path.join("./repos", owner, repo, baseBranch);
     return new Promise(async (resolve, reject) => {
       try {
-        this.logger.forTask(taskId).info(`Checking for repo on local disk..`);
-        if (!existsSync(p)) {
-          log.info(`Repo has not been cloned to disk. Cloning...`);
-          await this.cloneRepo({
-            owner: owner,
-            repo: repo,
-            baseBranch: baseBranch,
-            taskId: taskId,
-          });
+        if (existsSync(path.join("./repos", owner, repo, branchName))) {
+          resolve(false);
         }
         const isValidRepo = await this.checkGitRepository({
           dir: p,
           taskId: taskId,
         });
         if (!isValidRepo) {
-          log.error(`Something is wrong with the local base branch at ${p}`);
           reject(
             new Error("Local repo base branch is not a valid Github repo"),
           );
         }
-        if (existsSync(p)) {
-          log.error(`${branchName} already exists!`);
-          resolve(false);
-        }
-        log.info(`Creating new branch ${branchName} on ${p}...`);
         const gitProcess = spawn(
           "git",
           ["worktree", "add", "-b", branchName, `../${branchName}`],
           { stdio: "inherit", cwd: p },
         );
-
         gitProcess.once("error", (err) => {
-          log.error(`Error creating branch: ${err}`);
           reject(err);
         });
         gitProcess.once("exit", (code) => {
           if (code === 0) {
-            log.info(
-              `Branch ${branchName} on ${owner}/${repo} successfully created`,
-            );
             resolve(true);
           } else {
-            log.error(`Failed to create the branch. Exit code: ${code}`);
             resolve(false);
           }
         });
       } catch (err) {
-        log.error(`Error while creating branch: ${err}`);
-        reject();
+        reject(err);
       }
     });
   }
@@ -264,32 +252,30 @@ export default class GithubUtils {
     baseBranch: string;
     taskId: string;
   }): Promise<boolean> {
-    const log = new TaskLogger({ logLevel: "debug", taskId: taskId });
     return new Promise(async (resolve, reject) => {
       try {
+        await this.authGithub();
         const workDir = path.join("./repos", owner, repo, baseBranch);
-        log.info(`Cloning ${owner}/${repo} to ${workDir}...`);
+        if (existsSync(workDir)) {
+          resolve(false);
+        }
         const gitProcess = spawn(
           "git",
           ["clone", `https://github.com/${owner}/${repo}`, workDir],
-          { stdio: "inherit", shell: true },
+          { stdio: "inherit" },
         );
-        gitProcess.once("error", (error: any) => {
-          log.error(`Error cloning repo:\n${error}`);
-          reject();
+        gitProcess.once("error", (err: any) => {
+          reject(err);
         });
         gitProcess.once("exit", (code) => {
           if (code === 0) {
-            log.info(`Successfully cloned ${owner}/${repo}!`);
             resolve(true);
           } else {
-            log.error(`Failed to clone the repo. Exit code: ${code}`);
             resolve(false);
           }
         });
-      } catch (error: any) {
-        log.error(`There was an error: ${error}`);
-        reject();
+      } catch (err: any) {
+        reject(err);
       }
     });
   }
@@ -316,8 +302,6 @@ export default class GithubUtils {
     message: string;
     taskId: string;
   }): Promise<boolean> {
-    const log = new TaskLogger({ logLevel: "info", taskId: taskId });
-
     return new Promise(async (resolve, reject) => {
       try {
         const isRepo = await this.checkGitRepository({
@@ -325,8 +309,7 @@ export default class GithubUtils {
           taskId: taskId,
         });
         if (!isRepo) {
-          log.error("gitProcess is not in a valid repo directory");
-          reject();
+          reject(new Error("Invalid local repo directory"));
         }
         const comms: SpawnCommands[] = [
           {
@@ -371,18 +354,30 @@ export default class GithubUtils {
             options: { stdio: "inherit", cwd: dir },
           },
         ];
+        const promises: Promise<any>[] = [];
         for (const comm of comms) {
-          log.debug(`Running ${comm.command} ${comm.args.toString()}...`);
-          await this.spawnAsync({
-            command: comm.command,
-            args: comm.args,
-            options: comm.options,
-          });
+          promises.push(
+            this.spawnAsync({
+              command: comm.command,
+              args: comm.args,
+              options: comm.options,
+            }),
+          );
         }
-        resolve(true);
-      } catch (error) {
-        log.error(`Error committing: ${error}`);
-        reject();
+        Promise.all(promises)
+          .then(
+            (onResolve) => {
+              resolve(true);
+            },
+            (onReject) => {
+              reject(onReject);
+            },
+          )
+          .catch((err) => {
+            reject(err);
+          });
+      } catch (err) {
+        reject(err);
       }
     });
   }
@@ -507,20 +502,29 @@ export default class GithubUtils {
     ];
     return new Promise<boolean>(async (resolve, reject) => {
       try {
+        const promises: Promise<any>[] = [];
         for (const comm of comms) {
-          log.debug(
-            `Running command ${comm.command} ${comm.args.toString()}...`,
+          promises.push(
+            this.spawnAsync({
+              command: comm.command,
+              args: comm.args,
+              options: comm.options,
+            }),
           );
-          await this.spawnAsync({
-            command: comm.command,
-            args: comm.args,
-            options: comm.options,
-          });
         }
-        log.info("Pull request successfully created!");
-        resolve(true);
+        Promise.all(promises)
+          .then(
+            (onResolve) => {
+              resolve(true);
+            },
+            (onReject) => {
+              reject(onReject);
+            },
+          )
+          .catch((err) => {
+            reject(err);
+          });
       } catch (err) {
-        log.error(`Error creating pull request: ${err}`);
         reject();
       }
     });
@@ -528,45 +532,94 @@ export default class GithubUtils {
   /**
    * Comment on Issue
    */
-  public async postIssueComment(
-    {event, taskId}:{
-      event:IssuesEvent, taskId:string}){
+  public async postIssueComment({
+    event,
+    taskId,
+  }: {
+    event: IssuesEvent;
+    taskId: string;
+  }) {
     //es-lint ignore
-    const log = new TaskLogger({ logLevel: "info", taskId: taskId });
-    let {number, body, user, state, comments, created_at, updated_at} = event.issue 
-    if(issuesCommentedOn.includes(number)){
-      return new Promise<boolean>(async (resolve, reject)=>{
-        log.info("We have already commented on this issue")
-        resolve(false)
-      })
-    }
-    let {full_name} = event.repository
-      const comm: SpawnCommands = {
-        command: "gh",
-        args: ["issue","comment",number.toString(),"-R", `https://github.com/${full_name}`, "-b", "OK I will work on this task"],
-        options: { stdio: "inherit"},
-      };
+    const {
+      number,
+      title,
+      body,
+      user,
+      state,
+      comments,
+      created_at,
+      updated_at,
+    } = event.issue;
+    if (issuesCommentedOn.includes(number)) {
       return new Promise<boolean>(async (resolve, reject) => {
-        try {
-          const code = await this.spawnAsync(comm);
-          if (code !== 0) {
-            issuesCommentedOn.push(number)
-            log.error(`Cannot leave comment\nError code ${code}`);
-            resolve(false);
-          } else {
-            issuesCommentedOn.push(number)
-            log.info(`We have replied to the comment`);
-            resolve(true);
-          }
-        } catch (error) {
-          issuesCommentedOn.push(number)
-          log.error(`Error making comment: ${error}`);
-          reject();
-        }
+        resolve(false);
       });
     }
+    const { full_name, default_branch } = event.repository;
+    const comms: SpawnCommands[] = [
+      {
+        command: "bash",
+        args: ["auth.sh"],
+        options: {},
+      },
+      {
+        command: "gh",
+        args: [
+          "issue",
+          "comment",
+          number.toString(),
+          "-R",
+          `https://github.com/${full_name}`,
+          "-b",
+          "OK I will work on this task",
+        ],
+        options: { stdio: "inherit" },
+      },
+    ];
+    return new Promise<boolean>(async (resolve, reject) => {
+      try {
+        const promises: Promise<any>[] = [];
+        for (const comm of comms) {
+          promises.push(
+            this.spawnAsync({
+              command: comm.command,
+              args: comm.args,
+              options: comm.options,
+            }),
+          );
+        }
+        Promise.all(promises)
+          .then(
+            (onResolve) => {
+              const [owner, repo] = full_name.split("/");
+              const task = new Task({
+                description: `${title} - ${body}`,
+                owner: owner,
+                repo: repo,
+                baseBranch: default_branch,
+                baseIssue: number,
+                status: TaskStatus.Queued,
+                pastTasks: [],
+                started_at: created_at,
+                id: `Issue__${full_name}__${number}`,
+              });
+              const tg = new TaskGenerator(task);
+              tg.init(task);
+            },
+            (onReject) => {
+              reject(onReject);
+            },
+          )
+          .catch((err) => {
+            reject(err);
+          });
+      } catch (err) {
+        reject();
+      }
+    });
+  }
 
   /**
-   * Comment on PR
+   * Comment on PR soon?
    */
 }
