@@ -10,8 +10,3 @@ and helpful ) and your own knowledge of software development.
 
 1. Start your answer with " Answer : ".
 2. Answer "Answer : Unknown" if you don’ t know the answer.
-
-Here is the information:
-Directory Tree: {tree}
-Question: {question}
-Context: {context}

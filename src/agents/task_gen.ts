@@ -1,13 +1,6 @@
-import { OpenAI } from "langchain/llms/openai";
-import { PromptTemplate } from "langchain/prompts";
-import { LLMChain } from "langchain/chains";
-import { writeFile } from "node:fs/promises";
-import path from "path";
 import winston from "winston";
 import axios, { AxiosRequestConfig } from "axios";
 import Task, { TaskStatus } from "../utils/Task.js";
-import { readFile } from "fs/promises";
-import { ChainValues } from "langchain/dist/schema";
 //TODO: Change this to be configurable from env
 const endpoint = "http://127.0.0.1:3000/app/v1";
 interface QuestionAnswer {
@@ -134,7 +127,7 @@ export default class TaskGenerator {
       this.logger.info(`Beginning work on Task ${this.task.id}`);
       const taskConfig: AxiosRequestConfig = {
         method: "POST",
-        url: `${endpoint}/ai/genTask`,
+        url: `${endpoint}/task/genTask`,
         headers: {
           "Content-Type": "application/json",
         },

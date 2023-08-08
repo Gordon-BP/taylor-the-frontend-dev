@@ -5,8 +5,12 @@ import express from "express";
 import { Request, Response } from "express";
 import bodyParser from "body-parser";
 import * as v from "../utils/validators.js";
-import { OpenAI } from "langchain/llms/openai";
-import { PromptTemplate } from "langchain/prompts";
+import { ChatOpenAI } from "langchain/chat_models/openai";
+import {
+  ChatPromptTemplate,
+  SystemMessagePromptTemplate,
+  HumanMessagePromptTemplate,
+} from "langchain/prompts";
 import { LLMChain } from "langchain/chains";
 import { writeFile } from "node:fs/promises";
 import path from "path";
@@ -178,10 +182,20 @@ async function generateQnas(
 ): Promise<QuestionAnswer[]> {
   const qnaPairs: QuestionAnswer[] = [];
   // First build the question model
-  const question_model = new OpenAI({ temperature: 0.15 });
-  const q_prompt_file = await readFile("./src/prompts/question_gen.md", "utf8");
-  const q_template = new PromptTemplate({
-    template: q_prompt_file,
+  const question_model = new ChatOpenAI({ temperature: 0.15 });
+  const q_sys_prompt = await readFile(
+    "./src/prompts/question_gen_sys.md",
+    "utf8",
+  );
+  const q_usr_prompt = await readFile(
+    "./src/prompts/question_gen_sys.md",
+    "utf8",
+  );
+  const q_template = new ChatPromptTemplate({
+    promptMessages: [
+      SystemMessagePromptTemplate.fromTemplate(q_sys_prompt),
+      HumanMessagePromptTemplate.fromTemplate(q_usr_prompt),
+    ],
     inputVariables: [
       "description",
       "dependencies",
@@ -195,10 +209,20 @@ async function generateQnas(
     prompt: q_template,
   });
   //Then build the answer model
-  const answer_model = new OpenAI({ temperature: 0.15 });
-  const a_prompt_file = await readFile("./src/prompts/answer_gen.md", "utf8");
-  const a_template = new PromptTemplate({
-    template: a_prompt_file,
+  const answer_model = new ChatOpenAI({ temperature: 0.15 });
+  const a_sys_prompt = await readFile(
+    "./src/prompts/answer_gen_sys.md",
+    "utf8",
+  );
+  const a_usr_prompt = await readFile(
+    "./src/prompts/answer_gen_usr.md",
+    "utf8",
+  );
+  const a_template = new ChatPromptTemplate({
+    promptMessages: [
+      SystemMessagePromptTemplate.fromTemplate(a_sys_prompt),
+      HumanMessagePromptTemplate.fromTemplate(a_usr_prompt),
+    ],
     inputVariables: ["tree", "question", "context"],
   });
   const answerChain = new LLMChain({ llm: answer_model, prompt: a_template });
@@ -280,10 +304,20 @@ async function generateTask(
   pastTasksFail: string[],
 ): Promise<string> {
   //TODO: make this configurable
-  const task_model = new OpenAI({ temperature: 0.15 });
-  const task_prompt_file = await readFile("./src/prompts/task_gen.md", "utf8");
-  const task_template = new PromptTemplate({
-    template: task_prompt_file,
+  const task_model = new ChatOpenAI({ temperature: 0.15 });
+  const task_sys_prompt = await readFile(
+    "./src/prompts/task_gen_sys.md",
+    "utf8",
+  );
+  const task_usr_prompt = await readFile(
+    "./src/prompts/task_gen_usr.md",
+    "utf8",
+  );
+  const task_template = new ChatPromptTemplate({
+    promptMessages: [
+      SystemMessagePromptTemplate.fromTemplate(task_sys_prompt),
+      HumanMessagePromptTemplate.fromTemplate(task_usr_prompt),
+    ],
     inputVariables: [
       "qnaPairs",
       "description",
@@ -409,7 +443,7 @@ tg_router.post(
   async (req: Request, res: Response) => {
     const task = req.body.task;
     const qnaConfig: AxiosRequestConfig = {
-      url: `${endpoint}/ai/genQnas`,
+      url: `${endpoint}/task/genQnas`,
       method: "POST",
       params: {},
       headers: {

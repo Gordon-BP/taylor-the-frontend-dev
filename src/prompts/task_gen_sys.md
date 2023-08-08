@@ -31,11 +31,3 @@ RESPONSE FORMAT:
 Here’ s an example response:
 Reasoning : There is no callback function on the web form's 'submit' button.
 Task : Modify index.html to add a callback function on the button with id "submitButton"
-
-Here is your information:
-{qnaPairs}
-...
-Issue description: {description}
-Repository directory: {tree}
-Completed tasks so far : {pastTasksPass}
-Failed tasks that are too hard : {pastTasksFail}

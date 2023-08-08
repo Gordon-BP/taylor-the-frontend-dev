@@ -49,9 +49,7 @@ App ID 364693
 > Now I'm back on team agent for this part. While simple stuff (like changing a README file) can be done in one shot, bug-fixing and small tweaks require a loop of Read File > Analyze > Make changes. We can either pass the contents of all the files into the LLM context, or we can let it read whatever files it wants.
 - [x] Fetch info
     - [x] Dir tree
-    - [x] Past tasks passed
-    - [x] Past tasks failed
-    - [ ] Relevant docs (pushed to v0.0.2)
+    - [~] Relevant docs (pushed to v0.0.2)
 - [ ] Skills library
     - [ ] Primitive skills
     - [ ] LLM's own custom skills
@@ -82,3 +80,46 @@ Very much need a proper client service to consume these APIs with. I can more cl
     - node_modules/.bin/jsdoc -c jsdoc.conf.json -X ./src > jsdoc-ast.json
     - consider what metadata to filter on https://js.langchain.com/docs/modules/data_connection/retrievers/how_to/self_query/hnswlib-self-query
 * Consider also just doing a standard postgres database with PGVector. It will work better with scale anyways, and you can have a different (persistent) table for each repo. 
+
+Eval will _always_ be agent
+
+**Agent or chain ?**
+For code gen as chain:
+    ================== Loop 1
+    - Task gen makes something super simple like "Read the index.html"
+        * 11 LLM Calls
+    - Code gen writes something like (readFile(index.html).then(output ={logger.info(output)}))
+        * 1 LLM call
+    - Evaluator looks at codebase, determines the issues is not resolved
+        * 2 - 3 LLM Calls
+    ================== Loop 2
+    - Task gen makes something more specific like "Rewrite the function foo to return bar instead of baz" 
+        * 11 LLM calls- 5 questions, 5 answers, 1 task gen
+    - Code gen writes something like(
+        readFile(index.html).then(output =>{
+            newOutput = <text manipulations to replace the exact function>
+            writeFile('/owner/repo/branch/index.html, newOutput)
+        }).
+    )
+        * 1 LLM call
+    - Evaluator looks at codebase, determines issue is resolved
+        * 2 - 3 LLM calls
+    **Total LLM Calls: 28 - 30**
+For code gen as agent:
+    ================= Loop 1
+    - Task gen makes something more specific like "Rewrite the function foo in index.html to return bar instead"
+        * 11 LLM calls
+    - Code gen decomposes it into sub-subtasks:
+        ============== Sub-Loop 1:
+        - Code gen makes super simple task like "Open index.html"
+            * 1 LLM call
+        - Code gen uses the readFile tool to get the file data
+            * 1 LLM call
+        ============== Sub-Loop 2:
+        - Code gen makes a super simple task like "Write new code to file"
+            * 1 LLM call
+        - Code gen uses the writeFile tool to overwrite the file
+            * 1 LLM call
+    - Evaluator looks at codebase, determines issues is resolved
+        * 2 - 3 LLM calls
+    **Total LLM Calls: 17 - 18**
