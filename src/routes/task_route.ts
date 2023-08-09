@@ -73,17 +73,17 @@ if (process.env.NODE_ENV !== "production") {
  * @returns {Array<string>}
  */
 async function getTasksByStatus(
-  task: Task,
+  task: Task | string,
   status: TaskStatus,
 ): Promise<string[]> {
   let descriptions: string[] = [];
-
-  if (task.status === status) {
-    descriptions.push(task.description);
+  const taskObj = typeof task == "string" ? JSON.parse(task) : task;
+  if (taskObj.status === status) {
+    descriptions.push(taskObj.baseTaskDescription);
   }
 
-  if (task.pastTasks && task.pastTasks.length > 0) {
-    for (const pastTask of task.pastTasks) {
+  if (taskObj.pastTasks && taskObj.pastTasks.length > 0) {
+    for (const pastTask of taskObj.pastTasks) {
       const finishedPastTaskDescriptions = await getTasksByStatus(
         pastTask,
         status,
@@ -109,6 +109,7 @@ async function getDependencies(rootDir: string): Promise<string> {
         return JSON.parse(file);
       })
       .catch((err) => {
+        logger.error(`Error fetching package.json dependencies: ${err}`);
         return undefined;
       });
     if (packageJson) {
@@ -125,6 +126,7 @@ async function getDependencies(rootDir: string): Promise<string> {
         }
       })
       .catch((err) => {
+        logger.error(`Error fetching pipfile dependencies: ${err}`);
         return undefined;
       });
     if (pipfileContent) {
@@ -148,6 +150,7 @@ async function getDependencies(rootDir: string): Promise<string> {
         }
       })
       .catch((err) => {
+        logger.error(`Error fetching poetry dependencies: ${err}`);
         return undefined;
       });
     if (poetryContent) {
@@ -184,11 +187,11 @@ async function generateQnas(
   // First build the question model
   const question_model = new ChatOpenAI({ temperature: 0.15 });
   const q_sys_prompt = await readFile(
-    "./src/prompts/question_gen_sys.md",
+    "src/prompts/question_gen_sys.md",
     "utf8",
   );
   const q_usr_prompt = await readFile(
-    "./src/prompts/question_gen_sys.md",
+    "src/prompts/question_gen_usr.md",
     "utf8",
   );
   const q_template = new ChatPromptTemplate({
@@ -230,7 +233,9 @@ async function generateQnas(
     return new Promise<QuestionAnswer[]>((resolve, reject) => {
       questionChain
         .call({
-          description: task.description,
+          description: task.nextTaskDescription
+            ? task.nextTaskDescription
+            : task.baseTaskDescription,
           dependencies: dependencies,
           tree: repoTree,
           pastTasksPass: pastTasksPass,
@@ -335,7 +340,9 @@ async function generateTask(
       taskChain
         .call({
           qnaPairs: qnaPairs,
-          description: task.description,
+          description: task.nextTaskDescription
+            ? task.nextTaskDescription
+            : task.baseTaskDescription,
           tree: repoTree,
           pastTasksPass: pastTasksPass,
           pastTasksFail: pastTasksFail,

@@ -42,3 +42,6 @@
 {"level":"\u001b[31merror\u001b[39m","message":"Code Gen Error TypeError: Cannot read properties of undefined (reading 'length')","service":"cg-router","timestamp":"2023-08-08T10:03:15.665Z"}
 {"level":"\u001b[31merror\u001b[39m","message":"Code Gen Error TypeError: Cannot read properties of undefined (reading 'length')","service":"cg-router","timestamp":"2023-08-08T10:08:11.744Z"}
 {"level":"\u001b[31merror\u001b[39m","message":"Code Gen Error TypeError: Cannot read properties of undefined (reading 'length')","service":"cg-router","timestamp":"2023-08-08T10:10:15.964Z"}
+{"level":"error","message":"Error while scanning directory tree","service":"file-service"}
+{"level":"\u001b[31merror\u001b[39m","message":"Code Gen Error TypeError: Converting circular structure to JSON\n    --> starting at object with constructor 'ClientRequest'\n    |     property 'socket' -> object with constructor 'Socket'\n    --- property '_httpMessage' closes the circle","service":"cg-router","timestamp":"2023-08-08T18:03:20.533Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Code Gen Error TypeError: Converting circular structure to JSON\n    --> starting at object with constructor 'ClientRequest'\n    |     property 'socket' -> object with constructor 'Socket'\n    --- property '_httpMessage' closes the circle","service":"cg-router","timestamp":"2023-08-08T18:12:20.967Z"}

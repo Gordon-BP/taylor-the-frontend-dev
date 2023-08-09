@@ -1,5 +1,4 @@
 import express from "express";
-import TaskLogger from "./utils/logger.js";
 import { Request, Response } from "express";
 import { gh_router } from "./routes/github_routes.js";
 import { tg_router } from "./routes/task_route.js";
@@ -9,8 +8,8 @@ import { cg_router } from "./routes/code_gen_route.js";
 import GithubUtils from "./utils/github_utils.js";
 import { v4 as uuid } from "uuid";
 import winston from "winston";
-import TaskGenerator from "./agents/task_gen.js";
 import Task, { TaskStatus } from "./utils/Task.js";
+import Client from "./Client.js";
 
 const logger = winston.createLogger({
   level: "debug",
@@ -81,13 +80,16 @@ class App {
           owner: "Gordon-BP",
           repo: "taylor-test-repo",
           baseBranch: "main",
-          description:
-            "Modify README.MD - The readme.md should contain the names of the contributors: Gordon-BP and Taylor the AI junior dev",
+          baseTaskDescription:
+            "Add an index.html page that includes the repo title (Taylor-test-repo), the contributors(Taylor_JD and Gordy-BP), and tells the user to come back soon for something exciting",
           started_at: "2023-08-06:16:20:69.420",
           id: "Test__Gordon-BP/taylor-test-repo__420",
         };
-        const tg = new TaskGenerator(devTask);
+        const tg = new Client(devTask);
         tg.init(devTask);
+      }
+      if (pull_request) {
+        logger.info(`Pull request received: ${pull_request}`);
       }
       res.status(200).json({
         message: "Task begun",
@@ -98,7 +100,7 @@ class App {
     this.express.use("/app/v1/github", gh_router);
     this.express.use("/app/v1/files", fs_router);
     this.express.use("/app/v1/task", tg_router);
-    this.express.use('/app/v1/code', cg_router)
+    this.express.use("/app/v1/code", cg_router);
     this.express.use("/docs", express.static("./docs"));
   }
 }

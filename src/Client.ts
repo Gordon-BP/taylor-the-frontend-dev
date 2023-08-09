@@ -1,22 +1,17 @@
+/**
+ * This is the client process that is triggered by a new issue
+ */
 import winston from "winston";
 import axios, { AxiosRequestConfig } from "axios";
-import Task, { TaskStatus } from "../utils/Task.js";
+import Task, { TaskStatus } from "./utils/Task.js";
 //TODO: Change this to be configurable from env
 const endpoint = "http://127.0.0.1:3000/app/v1";
-interface QuestionAnswer {
-  question: string;
-  answer: string;
-}
 /**
  * @class
  */
-export default class TaskGenerator {
+export default class Client {
   task: Task;
   logger: winston.Logger;
-  question_model?: string; //model that generates questions
-  answer_model?: string; //model that answers generated questions
-  task_model?: string; //model that makes the next task, should be powerful
-  docs_vectorstore?: string; //but really langchain.Vectorstore
   constructor(task: Task) {
     this.task = task;
     this.logger = winston.createLogger({
@@ -54,6 +49,7 @@ export default class TaskGenerator {
    */
   public async init(task: Task) {
     const { owner, repo, baseBranch, id } = task;
+    // Begin listening to the task status for changes
     this.start();
     this.logger.debug("Cloning repo...");
     const cloneConfig: AxiosRequestConfig = {
@@ -66,7 +62,7 @@ export default class TaskGenerator {
         owner: owner,
         repo: repo,
         baseBranch: baseBranch,
-        taskId: task.id,
+        taskId: id,
       },
     };
 
@@ -121,10 +117,19 @@ export default class TaskGenerator {
    * Generate a task if the Task obj is queued
    */
   private async start() {
-    const taskStatus = this.task.status;
+    const {
+      owner,
+      repo,
+      branchName,
+      status,
+      id,
+      baseTaskDescription,
+      nextTaskDescription,
+    } = this.task;
+    const taskStatus = status;
     this.logger.debug(`This task is currently ${taskStatus}`);
     if (taskStatus == TaskStatus.Queued) {
-      this.logger.info(`Beginning work on Task ${this.task.id}`);
+      this.logger.info(`Decomposing Task ${id}`);
       const taskConfig: AxiosRequestConfig = {
         method: "POST",
         url: `${endpoint}/task/genTask`,
@@ -136,10 +141,55 @@ export default class TaskGenerator {
       };
       axios(taskConfig)
         .then((response) => {
-          this.logger.info(`This is the task: ${response.data.data}`);
+          this.logger.info(`This is new task: ${response.data.data}`);
+          this.task.pastTasks.push(
+            JSON.stringify({
+              baseTaskDescription,
+              nextTaskDescription,
+              status,
+            }),
+          );
+          this.task.nextTaskDescription = response.data.data;
+          this.task.status = TaskStatus.InProgress;
+          //eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { pastTasks, ...currentTaskOnly } = this.task;
+          const codeGenConfig: AxiosRequestConfig = {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            url: `${endpoint}/code/genCode`,
+            params: {},
+            data: {
+              task: currentTaskOnly,
+            },
+          };
+          this.logger.debug(codeGenConfig);
+          axios(codeGenConfig).then(async (code) => {
+            this.logger.info(
+              `Code received! \n${JSON.stringify(code.data.data)}`,
+            );
+            const writeConfig: AxiosRequestConfig = {
+              url: `${endpoint}/files/${owner}/${repo}/${branchName}/writeFile`,
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              params: { owner, repo: repo, branchName: branchName },
+              data: { filePath: `code.js`, data: code.data.data, taskId: id },
+            };
+            this.logger.debug(writeConfig);
+            await axios(writeConfig)
+              .then((response) => {
+                this.logger.info(response.data.message);
+              })
+              .catch((err) => {
+                this.logger.error(`Error saving code to file: ${err}`);
+              });
+          });
         })
         .catch((err) => {
-          this.logger.debug(`Error generating task`);
+          this.logger.debug(`Error generating task: ${err}`);
         });
     } else if (taskStatus == TaskStatus.InProgress) {
       this.logger.debug("Task is processing, waiting...");
@@ -147,7 +197,7 @@ export default class TaskGenerator {
         setTimeout(() => {
           resolve();
         }, 10000);
-      }).then((resolve) => {
+      }).then(() => {
         this.start();
       });
     } else if (

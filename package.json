@@ -8,7 +8,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "tsc -p configs/tsconfig.json && source .env && bash auth.sh && node ./build/index.js",
+    "dev": "tsc -p configs/tsconfig.json && source .env && bash auth.sh && node ./build/index.js --no-node-snapshot",
     "test": "jest --verbose true /build/tests/ --silent=false",
     "build_docs": "node_modules/.bin/jsdoc -r src/App.ts -c configs/jsdoc.conf.json",
     "build_tests": "tsc ./tests/*.test.ts --outDir ./build/tests/ --esModuleInterop true",

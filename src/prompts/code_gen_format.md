@@ -10,7 +10,6 @@
     Explain:
     ...
     Code:
-    \`\`\`javascript
-    Your code here
-    \`\`\`
+    Your javascript code here
+    
    

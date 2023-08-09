@@ -51,9 +51,9 @@ App ID 364693
     - [x] Dir tree
     - [~] Relevant docs (pushed to v0.0.2)
 - [ ] Skills library
-    - [ ] Primitive skills
+    - [x] Primitive skills
     - [ ] LLM's own custom skills
-- [ ] Save code to a file and return filepath
+- [x] Save code to a file
 > Do we _have_ to require the LLM to write Javascript? Like, the code it writes will only be consuming APIs. It'll write additional code in strings, but there's no set reason why it has to use JS/TS to call those APIs, right?
 - [ ] Verification bash script
     - [ ] Lint check fixes whatever it can automatically

@@ -7,41 +7,16 @@ import bodyParser from "body-parser";
 import * as v from "../utils/validators.js";
 import { z } from "zod";
 import { ChatOpenAI } from "langchain/chat_models/openai";
-import {
-  ChatPromptTemplate,
-  SystemMessagePromptTemplate,
-  HumanMessagePromptTemplate,
-} from "langchain/prompts";
-import CodeOutputParser  from "../prompts/code_output_parser.js";
-import  CodePromptTemplate  from "../prompts/code_prompt_template.js";
-import { DynamicStructuredTool, ReadFileTool } from "langchain/tools";
-import { writeFile } from "node:fs/promises";
-import path from "path";
-import { Tool } from "langchain/tools";
+import CodeOutputParser from "../prompts/code_output_parser.js";
+import CodePromptTemplate from "../prompts/code_prompt_template.js";
+import { DynamicStructuredTool } from "langchain/tools";
 import winston from "winston";
 import axios, { AxiosRequestConfig } from "axios";
-import Task, { TaskStatus } from "../utils/Task.js";
-import { readFile } from "fs/promises";
-import { ChainValues } from "langchain/dist/schema";
 import { AgentExecutor, LLMSingleActionAgent } from "langchain/agents";
 import { LLMChain } from "langchain";
 //TODO: Change to be configurable from env
 export const cg_router = express.Router();
 const endpoint = "http://127.0.0.1:3000/app/v1";
-
-interface ReadToolSchema {
-  path: string;
-  taskId: string;
-}
-interface WriteToolSchema {
-  path: string;
-  data: string;
-  taskId: string;
-}
-interface SubmitToolSchema {
-  data: string;
-  taskId: string;
-}
 
 interface FileData {
   path: string;
@@ -130,7 +105,7 @@ function writeFiles(fileData: FileData[], taskId: string): string {
   });
   Promise.all(promises)
     .then((responses) => {
-      resp = "Files successfully write";
+      resp = `Files successfully written:\n${responses}`;
     })
     .catch((err) => {
       logger.error(`Error writing files: ${err}`);
@@ -153,11 +128,26 @@ cg_router.post(
   v.validateTask,
   async (req: Request, res: Response) => {
     const model = new ChatOpenAI({ temperature: 0.15 });
-    const { task, tree } = req.body;
-    logger.info(`\n\n=========Task Description:\n${task.description}\n===========`)
-    if(task.description.length == 0){
-        res.status(400).json({message:"Invalid request- task is without description!"})
+    const { task } = req.body;
+    const nextTask = task.nextTaskDescription;
+    if (!nextTask || nextTask.length == 0) {
+      res
+        .status(400)
+        .json({ message: "Invalid request- task is without description!" });
     }
+    const treeConfig: AxiosRequestConfig = {
+      method: "POST",
+      url: `${endpoint}/files/${task.owner}/${task.repo}/${task.branchName}/tree`,
+      params: {
+        owner: task.owner,
+        repo: task.repo,
+        branchName: task.branchName,
+      },
+      data: {
+        taskId: task.id,
+      },
+    };
+    const treeResponse = await axios(treeConfig);
     const codeTools = [
       new DynamicStructuredTool({
         name: "Submit Answer",
@@ -206,12 +196,14 @@ cg_router.post(
     const codeChain = new LLMChain({
       prompt: new CodePromptTemplate({
         tools: codeTools,
-        inputVariables: ["previousCode",
+        inputVariables: [
+          "previousCode",
           "codeError",
           "recentLogs",
           "description",
           "tree",
-          "feedback"],
+          "feedback",
+        ],
       }),
       llm: model,
     }); //End chain def
@@ -228,20 +220,23 @@ cg_router.post(
     });
     executor
       .call([
-        {previousCode: "None available- you are on your first attempt!"},
-        {codeError: "None available- you are on your first attempt!"},
-        {recentLogs: "None available- you are on your first attempt!"},
-        {description: task.description},
-        {tree: tree},
-        {feedback: "None available- you are on your first attempt!"},
+        { previousCode: "None available- you are on your first attempt!" },
+        { codeError: "None available- you are on your first attempt!" },
+        { recentLogs: "None available- you are on your first attempt!" },
+        { description: nextTask },
+        { tree: treeResponse.data },
+        { feedback: "None available- you are on your first attempt!" },
       ])
       .then((response) => {
-        logger.info(`Code Gen Response: ${response}`);
-        res.status(200).json({ message: response });
+        logger.info(`Code Gen Response: \n${response.output}`);
+        res.status(200).json({
+          message: "Code successfully generated!",
+          data: response.output,
+        });
       })
       .catch((err) => {
         logger.error(`Code Gen Error ${err}`);
-        res.status(500).json({ message: err });
+        res.status(500).json({ message: `Code Gen Error ${err}` });
       });
   },
 );

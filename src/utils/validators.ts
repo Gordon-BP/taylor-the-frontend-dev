@@ -2,7 +2,6 @@
  * Validates API inputs for the app
  */
 import { Request, Response, NextFunction } from "express";
-import Task from "./Task.js";
 
 /**
  * Validator for task IDs.
@@ -32,13 +31,13 @@ export function validateReq(params: Array<string>, data: Array<string>): any {
     //check params
     missing_fields = missing_fields.concat(
       params.filter((field) => {
-        req.params[field];
+        return req.params[field] === undefined;
       }),
     );
     //check body
     missing_fields = missing_fields.concat(
       data.filter((field) => {
-        req.body[field];
+        return req.body[field] === undefined;
       }),
     );
     if (missing_fields.length != 0) {
