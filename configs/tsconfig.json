@@ -4,7 +4,7 @@
       "module": "es6",
       "moduleResolution": "node",
       "allowSyntheticDefaultImports": true,
-      "outDir": "build",
+      "outDir": "../build",
       "sourceMap": true,
       "strict": true
     },

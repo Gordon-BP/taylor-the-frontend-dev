@@ -88,7 +88,7 @@ fs_router.post(
   v.validateTaskId,
   async (req: Request, res: Response) => {
     const { owner, repo, branchName } = req.params;
-    const { filePath, data, taskId } = req.body;
+    const { filePath, data } = req.body;
     const p = path.join("./repos", owner, repo, branchName, filePath);
     logger.debug("Writing new file...");
     const handle = await open(p, "w").catch(async (error: any) => {
@@ -166,7 +166,6 @@ fs_router.post(
   v.validateTaskId,
   async (req: Request, res: Response) => {
     const { owner, repo, branchName } = req.params;
-    const { taskId } = req.body;
     const p = path.join("./repos", owner, repo, branchName);
     logger.debug("Creating directory tree...");
     pkg

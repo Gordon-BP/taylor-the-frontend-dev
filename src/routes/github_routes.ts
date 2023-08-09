@@ -56,7 +56,7 @@ gh_router.post(
   v.validateReq([], ["owner", "repo", "baseBranch", "taskId"]),
   v.validateTaskId,
   async (req: Request, res: Response) => {
-    const { owner, repo, baseBranch, taskId } = req.body;
+    const { owner, repo, baseBranch } = req.body;
     const github = new GithubUtils();
     const p = path.join("./repos", owner, repo, baseBranch);
     logger.debug(`Cloning Repo ${owner}/${repo}`);
@@ -65,7 +65,6 @@ gh_router.post(
         owner: owner,
         repo: repo,
         baseBranch: baseBranch,
-        taskId: taskId,
       })
       .then((success) => {
         if (success == true) {
@@ -199,14 +198,13 @@ gh_router.get(
   v.validateTaskId,
   async (req: Request, res: Response) => {
     const { owner, repo } = req.params;
-    const { num, taskId } = req.body;
+    const { num } = req.body;
     const github = new GithubUtils();
     logger.debug(`Fetching issue ${num} from ${owner}/${repo}`);
     await github
       .getIssueFromRepo({
         owner: owner,
         repo: repo,
-        taskId: taskId,
         num: num,
       })
       .then((result) => {
@@ -254,7 +252,6 @@ gh_router.post(
     const { owner, repo, branchName } = req.params;
     const { title, body, baseBranch, num, taskId } = req.body;
     const github = new GithubUtils();
-    const p = path.join("./repos", owner, repo, branchName);
     logger.debug(
       `Creating PR from ${branchName} to ${baseBranch} on ${owner}/${repo}...`,
     );

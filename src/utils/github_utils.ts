@@ -1,4 +1,4 @@
-import { ChildProcess, spawn, exec } from "child_process";
+import { ChildProcess, spawn } from "child_process";
 import type { IssuesEvent } from "@octokit/webhooks-types";
 import { existsSync } from "fs";
 import { Writable } from "stream";
@@ -6,7 +6,7 @@ import TaskLogger from "./logger.js";
 import path from "node:path";
 import { TaskStatus } from "./Task.js";
 import Task from "./Task.js";
-import TaskGenerator from "../agents/task_gen.js";
+import Client from "../Client.js";
 
 interface SpawnCommands {
   command: string;
@@ -62,7 +62,8 @@ export default class GithubUtils {
     return new Promise<boolean>((resolve, reject) => {
       // Run the bash script using spawn
       const authProcess = spawn("bash", ["auth.sh"]);
-      let token = "";
+      //eslint-disable-next-line @typescript-eslint/no-unused-vars
+      let token="";
       authProcess.stdout.on("data", (data) => {
         token += data;
       });
@@ -83,9 +84,9 @@ export default class GithubUtils {
   }
 
   /**
-   * Helper function to promiseify spawn() and chain multiple commands
-   * @param {SpawnCommands} commandArgs - the command with args to run
-   * @returns {Promise<number | Error>}
+   * Helper function to execute a command asynchronously using the `spawn` function from the `child_process` module.
+   * @param {SpawnCommands} commandArgs - An object containing the command, arguments, and options.
+   * @returns {Promise<number | Error>} - A promise that resolves with the exit code of the command or rejects with an error.
    */
   private async spawnAsync(commandArgs: SpawnCommands) {
     return new Promise((resolve, reject) => {
@@ -110,12 +111,10 @@ export default class GithubUtils {
   public async getIssueFromRepo({
     owner,
     repo,
-    taskId,
     num,
   }: {
     owner: string;
     repo: string;
-    taskId: string;
     num: string;
   }): Promise<object> {
     const p = path.join("./repos", owner, repo);
@@ -245,12 +244,10 @@ export default class GithubUtils {
     owner,
     repo,
     baseBranch = "main",
-    taskId,
   }: {
     owner: string;
     repo: string;
     baseBranch: string;
-    taskId: string;
   }): Promise<boolean> {
     return new Promise(async (resolve, reject) => {
       try {
@@ -366,6 +363,7 @@ export default class GithubUtils {
         }
         Promise.all(promises)
           .then(
+            //eslint-disable-next-line @typescript-eslint/no-unused-vars
             (onResolve) => {
               resolve(true);
             },
@@ -450,7 +448,6 @@ export default class GithubUtils {
     num: string;
   }): Promise<boolean> {
     const dir = path.join("./repos", owner, repo, branchName);
-    const log = new TaskLogger({ logLevel: "info", taskId: taskId });
     const issueLink = `https://github.com/${owner}/${repo}/issues/${num}`;
     const comms: SpawnCommands[] = [
       {
@@ -495,7 +492,7 @@ export default class GithubUtils {
           "--title",
           title,
           "--body",
-          body + `\n fixes ${issueLink}`,
+          body + `\n fixes ${issueLink}\n TaskID: ${taskId}`,
         ],
         options: { stdio: "inherit", cwd: dir },
       },
@@ -514,6 +511,7 @@ export default class GithubUtils {
         }
         Promise.all(promises)
           .then(
+            //eslint-disable-next-line @typescript-eslint/no-unused-vars
             (onResolve) => {
               resolve(true);
             },
@@ -540,17 +538,9 @@ export default class GithubUtils {
     taskId: string;
   }) {
     //es-lint ignore
-    const {
-      number,
-      title,
-      body,
-      user,
-      state,
-      comments,
-      created_at,
-      updated_at,
-    } = event.issue;
+    const { number, title, body, created_at } = event.issue;
     if (issuesCommentedOn.includes(number)) {
+      //eslint-disable-next-line @typescript-eslint/no-unused-vars
       return new Promise<boolean>(async (resolve, reject) => {
         resolve(false);
       });
@@ -571,7 +561,7 @@ export default class GithubUtils {
           "-R",
           `https://github.com/${full_name}`,
           "-b",
-          "OK I will work on this task",
+          `OK I will work on this task. It has the id ${taskId}`,
         ],
         options: { stdio: "inherit" },
       },
@@ -590,6 +580,7 @@ export default class GithubUtils {
         }
         Promise.all(promises)
           .then(
+            //eslint-disable-next-line @typescript-eslint/no-unused-vars
             (onResolve) => {
               const [owner, repo] = full_name.split("/");
               const task = new Task({
@@ -603,7 +594,7 @@ export default class GithubUtils {
                 started_at: created_at,
                 id: `Issue__${full_name}__${number}`,
               });
-              const tg = new TaskGenerator(task);
+              const tg = new Client(task);
               tg.init(task);
             },
             (onReject) => {

@@ -22,9 +22,10 @@ export default class Task {
    * @param {TaskStatus} [status] - The status of the task (optional).
    * @param {Array<Task>} [pastTasks] - An array of past tasks related to this task (optional)
    */
-  description: string;
+  baseTaskDescription: string;
+  nextTaskDescription?: string;
   status: TaskStatus;
-  pastTasks: Array<Task>;
+  pastTasks: Array<string>;
   baseIssue: number;
   owner: string;
   repo: string;
@@ -47,7 +48,7 @@ export default class Task {
   }: {
     description: string;
     status: TaskStatus;
-    pastTasks: Array<Task>;
+    pastTasks: Array<string>;
     baseIssue: number;
     owner: string;
     repo: string;
@@ -57,7 +58,7 @@ export default class Task {
     logger?: winston.Logger;
     branchName?: string;
   }) {
-    this.description = description;
+    this.baseTaskDescription = description;
     this.status = status;
     this.baseIssue = baseIssue;
     this.pastTasks = pastTasks;
