@@ -84,9 +84,9 @@ export default class GithubUtils {
   }
 
   /**
-   * Helper function to promiseify spawn() and chain multiple commands
-   * @param {SpawnCommands} commandArgs - the command with args to run
-   * @returns {Promise<number | Error>}
+   * Helper function to execute a command asynchronously using the `spawn` function from the `child_process` module.
+   * @param {SpawnCommands} commandArgs - An object containing the command, arguments, and options.
+   * @returns {Promise<number | Error>} - A promise that resolves with the exit code of the command or rejects with an error.
    */
   private async spawnAsync(commandArgs: SpawnCommands) {
     return new Promise((resolve, reject) => {

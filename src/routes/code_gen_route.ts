@@ -53,12 +53,13 @@ if (process.env.NODE_ENV !== "production") {
   );
 }
 /**
- * ============================================
- *             Helper functions
- * ============================================
+ * Retrieves the contents of multiple files specified by their file paths.
+ * 
+ * @param paths - An array of file paths.
+ * @param taskId - The task ID for identification purposes.
+ * @returns A promise that resolves with a string containing the concatenated contents of all the files.
  */
-
-function getFiles(paths: string[], taskId: string): string {
+function getFiles(paths: string[], taskId: string): Promise<string> {
   let fileContent = "";
   const promises = paths.map((filePath) => {
     if (/\.\/repos/.test(filePath)) {
@@ -70,15 +71,18 @@ function getFiles(paths: string[], taskId: string): string {
       },
     });
   });
-  Promise.all(promises)
-    .then((responses) => {
-      const fileContents = responses.map((response) => response.data);
-      fileContent = fileContents.join("\n");
-    })
-    .catch((err) => {
-      logger.error(`Error fetching files: ${err}`);
-    });
-  return fileContent;
+  return new Promise((resolve, reject) => {
+    Promise.all(promises)
+      .then((responses) => {
+        const fileContents = responses.map((response) => response.data);
+        fileContent = fileContents.join("\n");
+        resolve(fileContent);
+      })
+      .catch((err) => {
+        logger.error(`Error fetching files: ${err}`);
+        reject(err);
+      });
+  });
 }
 function writeFiles(fileData: FileData[], taskId: string): string {
   let resp = "";
