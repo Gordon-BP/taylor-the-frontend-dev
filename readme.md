@@ -4,6 +4,19 @@ An AI-powered software dev that does some pretty cool things!
 App ID 364693
 
 ## To-do list
+
+**Self Validation**
+> I'm also on team agent for this part, too. It should be able to read any and all files, as well as the logs, to determine if the task is passed or not.
+- [ ] Verification bash script
+    - [ ] Lint check fixes whatever it can automatically
+    - [ ] Return any errors back to the LLM
+- [ ] Run the code ⚠️ oooh scary
+    - [ ] Return any errors back to the LLM
+- [X] Read file tool
+- [ ] Get the last 10 or so logs (omit unnecessary info like taskID, service)
+- [ ] Return pass/fail
+
+## Done ✅ Tasks
 **Github Utilities:** --Almost there!
 - [x] Clone repo
 - [x] Create new branch
@@ -33,7 +46,7 @@ App ID 364693
 - [ ] Clean up your server-side logging
 
 **Task Generation**
-- [ ] Fetch info
+- [~] Fetch info
     - [x] Dir tree
     - [x] Past tasks passed
     - [x] Past tasks failed
@@ -54,72 +67,22 @@ App ID 364693
     - [x] Primitive skills
     - [ ] LLM's own custom skills
 - [x] Save code to a file
+✅ DONE WITH CODE GENERATION ✅ (for now)
+
 > Do we _have_ to require the LLM to write Javascript? Like, the code it writes will only be consuming APIs. It'll write additional code in strings, but there's no set reason why it has to use JS/TS to call those APIs, right?
-- [ ] Verification bash script
-    - [ ] Lint check fixes whatever it can automatically
-    - [ ] Return any errors back to the LLM
-- [ ] Run the code ⚠️ oooh scary
-    - [ ] Return any errors back to the LLM
 
-**Self Validation**
-> I'm also on team agent for this part, too. It should be able to read any and all files, as well as the logs, to determine if the task is passed or not.
-- [ ] Read file tool
-- [ ] Get the last 10 or so logs (omit unnecessary info like taskID, service)
-- [ ] Return pass/fail
 
-**Client Service**
-Very much need a proper client service to consume these APIs with. I can more clearly understand the nodes & flows, and having all the steps as API services is really helpful. However, one client is needed per issue for the following reason:
-1. Client-side logs will be automatically scoped to the issue/task ID
-2. Client can listen for webhooks, too, when tasks are pending PR review, comment clarification, or GH automatic checks
-3. Server-Client structure is better suited for having 100+ clients running at once.
+- [X] **Client Service**
+> Very much need a proper client service to consume these APIs with. I can more clearly understand the nodes & flows, and having all the steps as API services is really helpful. However, one client is needed per issue for the following reasons:
+    1. Client-side logs will be automatically scoped to the issue/task ID
+    2. Client can listen for webhooks, too, when tasks are pending PR review, comment clarification, or GH automatic checks
+    3. Server-Client structure is better suited for having 100+ clients running at once.
 
-**Other Notes 'N Stuff**
+## Other Notes 'N Stuff
 * Web research retriever
     - will need to implement on your own with https://serpapi.com/integrations/node and LLM chain
 * HNSWlib indices https://js.langchain.com/docs/modules/data_connection/vectorstores/integrations/hnswlib
     - node_modules/.bin/jsdoc -c jsdoc.conf.json -X ./src > jsdoc-ast.json
     - consider what metadata to filter on https://js.langchain.com/docs/modules/data_connection/retrievers/how_to/self_query/hnswlib-self-query
 * Consider also just doing a standard postgres database with PGVector. It will work better with scale anyways, and you can have a different (persistent) table for each repo. 
-
-Eval will _always_ be agent
-
-**Agent or chain ?**
-For code gen as chain:
-    ================== Loop 1
-    - Task gen makes something super simple like "Read the index.html"
-        * 11 LLM Calls
-    - Code gen writes something like (readFile(index.html).then(output ={logger.info(output)}))
-        * 1 LLM call
-    - Evaluator looks at codebase, determines the issues is not resolved
-        * 2 - 3 LLM Calls
-    ================== Loop 2
-    - Task gen makes something more specific like "Rewrite the function foo to return bar instead of baz" 
-        * 11 LLM calls- 5 questions, 5 answers, 1 task gen
-    - Code gen writes something like(
-        readFile(index.html).then(output =>{
-            newOutput = <text manipulations to replace the exact function>
-            writeFile('/owner/repo/branch/index.html, newOutput)
-        }).
-    )
-        * 1 LLM call
-    - Evaluator looks at codebase, determines issue is resolved
-        * 2 - 3 LLM calls
-    **Total LLM Calls: 28 - 30**
-For code gen as agent:
-    ================= Loop 1
-    - Task gen makes something more specific like "Rewrite the function foo in index.html to return bar instead"
-        * 11 LLM calls
-    - Code gen decomposes it into sub-subtasks:
-        ============== Sub-Loop 1:
-        - Code gen makes super simple task like "Open index.html"
-            * 1 LLM call
-        - Code gen uses the readFile tool to get the file data
-            * 1 LLM call
-        ============== Sub-Loop 2:
-        - Code gen makes a super simple task like "Write new code to file"
-            * 1 LLM call
-        - Code gen uses the writeFile tool to overwrite the file
-            * 1 LLM call
-    - Evaluator looks at codebase, determines issues is resolved
-        * 2 - 3 LLM calls
-    **Total LLM Calls: 17 - 18**
+* Since this "bot" makes calls to models on external systems, can I run this on a free GCP VM? Or an old iPhone?
