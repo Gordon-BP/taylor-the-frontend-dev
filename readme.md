@@ -6,20 +6,20 @@ An implementation of MineDojo's [Voyager](https://voyager.minedojo.org/) focused
 
 ## What makes this agent so special?
 Taylor ~~steals~~ builds upon Voyager's architecture to complete long-horizon tasks better than other LLM-powered agents. This includes:
-* Dynamic task decomposition based on both the initial Github issue and past successes/failures
-* Custom code-generation agent that explores your Github repo in order to write more applicable code
-* Self-validation both by traditional methods (compiler checks, linting, etc) and with an LLM
+* 🧾 Dynamic task decomposition based on both the initial Github issue and past successes/failures
+* 👾 Custom code-generation agent that explores your Github repo in order to write more applicable code
+* ✅ Self-validation both by traditional methods (compiler checks, linting, etc) and with an LLM
 
-This agent also interfaces __entirely through Github!_ As a Github app, Taylor automatically:
+This agent also interfaces _entirely through Github!_ As a Github app, Taylor automatically:
 * Starts work on Issues as soon as they are submitted
 * Clones the repo, forks a new branch, and commits to this new branch only
 * Creates a pull request when they believe the issue is resolved.
 
 ## Tech Stack:
-* Node.js + Typescript
-* Express.js for the API
-* Langchain.js to interface with the LLM stuff
-* OpenAI APIs for the LLM
+* 💾 Node.js + Typescript
+* 📲 Express.js for the API
+* 🦜 Langchain.js to interface with the LLM stuff
+* 🤖 OpenAI APIs for the LLM
 
 # This is version 0.1- it barely works 😅
 Some things it can do:
