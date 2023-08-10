@@ -1,81 +1,53 @@
 # Taylor the Junior Dev!
+## AKA Code-Voyager
+![image](taylor_jd_banner.png)
 
-An AI-powered software dev that does some pretty cool things!
-App ID 364693
+An implementation of MineDojo's [Voyager](https://voyager.minedojo.org/) focused on closing Github issues instead of playing Minecraft.
 
-## To-do list
+## What makes this agent so special?
+Taylor ~~steals~~ builds upon Voyager's architecture to complete long-horizon tasks better than other LLM-powered agents. This includes:
+* Dynamic task decomposition based on both the initial Github issue and past successes/failures
+* Custom code-generation agent that explores your Github repo in order to write more applicable code
+* Self-validation both by traditional methods (compiler checks, linting, etc) and with an LLM
 
-**Self Validation**
-> I'm also on team agent for this part, too. It should be able to read any and all files, as well as the logs, to determine if the task is passed or not.
-- [ ] Verification bash script
-    - [ ] Lint check fixes whatever it can automatically
-    - [ ] Return any errors back to the LLM
-- [ ] Run the code ⚠️ oooh scary
-    - [ ] Return any errors back to the LLM
-- [X] Read file tool
-- [ ] Get the last 10 or so logs (omit unnecessary info like taskID, service)
-- [ ] Return pass/fail
+This agent also interfaces __entirely through Github!_ As a Github app, Taylor automatically:
+* Starts work on Issues as soon as they are submitted
+* Clones the repo, forks a new branch, and commits to this new branch only
+* Creates a pull request when they believe the issue is resolved.
 
-**DevOps Things**
-- [ ] Dockerize app
-- [ ] Better webhook hosting than ngrok
-- [ ] Clean up your server-side logging
+## Tech Stack:
+* Node.js + Typescript
+* Express.js for the API
+* Langchain.js to interface with the LLM stuff
+* OpenAI APIs for the LLM
 
-## Done ✅ Tasks
-**Github Utilities:** --Almost there!
-- [x] Clone repo
-- [x] Create new branch
-- [x] Stage, Commit, and Push combo
-- [x] Create Pull Request
-- [x] Get Issue
-- [x] Listen for issue creation
-- [x] Listen for pull request updates
-- [x] Comment on issue
-- [x] auth as app <- BIG WIN
+# This is version 0.1- it barely works 😅
+Some things it can do:
+- [x] Connect to a repo as a Github app
+- [x] Fetch an issue, decompose it into a clear task, and assign that task to the code generation agent
+- [x] Commit and open a PR when the code generation is finished
 
-✅ DONE WITH GITHUB ✅
+## Things to come in version 0.2
+- [ ] Self-verification agent that doesn't rubber-stamp approve everything
+- [ ] Return lint errors back to the code generator without failing the task
+- [ ] Set up logging on a per-task basis to add environmental data to each chain
+- [ ] Vector database based off of the repo code + library documentation
+- [ ] Skills library and retriever (like Voyager)
+- [ ] Move model configs from hardcoded to .env vars
+- [ ] Meet with a skilled backend JS dev to talk about better ways to structure the app to reduce duplicate code
 
+## Things saved for version 0.3 and onwards
+- [ ] Dockerized app
+- [ ] Unit tests for each route
+- [ ] Internet search retriever (maybe)
+- [ ] Experiment with other models for each task
+    - I'm _super_ interested in trying out code-specific LLMs like StarCoder, and that 2.7B Ghostwriter.
+- [ ] Documentation about how to get your own Taylor server up and running
+- [ ] Extreme dogfooding- add Taylor to this repo and have the agent improve its own code
 
-**Primitive Skills:**
-- [x] Read file
-- [x] Write or Create File
-- [x] Delete File
-- [x] Get Directory Tree
-- [x] Tests for file skills
-
-✅ DONE WITH PRIMITIVES ✅
-
-**Other Utilities**
-- [x] Stream task-specific logs to a task-specific file
-- [x] Implement API Client service
-
-**Task Generation**
-- [~] Fetch info
-    - [x] Dir tree
-    - [x] Past tasks passed
-    - [x] Past tasks failed
-    - [ ] Reference from docs (pushed to v0.0.2)
-- [x] Generate Questions
-- [x] Answer questions
-- [x] Use all info to make task
-- [x] Return task as single string
-
-✅ DONE WITH TASK GENERATION ✅ (for now)
-
-**Code Generation**
-> Now I'm back on team agent for this part. While simple stuff (like changing a README file) can be done in one shot, bug-fixing and small tweaks require a loop of Read File > Analyze > Make changes. We can either pass the contents of all the files into the LLM context, or we can let it read whatever files it wants.
-- [x] Fetch info
-    - [x] Dir tree
-    - [~] Relevant docs (pushed to v0.0.2)
-- [ ] Skills library
-    - [x] Primitive skills
-    - [ ] LLM's own custom skills
-- [x] Save code to a file
-✅ DONE WITH CODE GENERATION ✅ (for now)
-
-> Do we _have_ to require the LLM to write Javascript? Like, the code it writes will only be consuming APIs. It'll write additional code in strings, but there's no set reason why it has to use JS/TS to call those APIs, right?
 
 ## Other Notes 'N Stuff
+> Do we _have_ to require the LLM to write Javascript? Like, the code it writes will only be consuming APIs. It'll write additional code in strings, but there's no set reason why it has to use JS/TS to call those APIs, right?
 * Web research retriever
     - will need to implement on your own with https://serpapi.com/integrations/node and LLM chain
 * HNSWlib indices https://js.langchain.com/docs/modules/data_connection/vectorstores/integrations/hnswlib
