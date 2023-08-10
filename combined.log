@@ -171,3 +171,300 @@
 {"level":"\u001b[32minfo\u001b[39m","message":"Code Gen Response: \"async function createIndexHtml(self) {\\n  const content = `\\n    <h1>Taylor-test-repo</h1>\\n    <ul>\\n      <li>Taylor_JD</li>\\n      <li>Gordy-BP</li>\\n    </ul>\\n    <p>Come back soon for something exciting!</p>\\n  `;\\n  \\n  await self.writeFiles([\\n    {\\n      path: 'index.html',\\n      content: content\\n    }\\n  ]);\\n  \\n  this.logger.info('index.html created successfully.');\\n}\\n\\ncreateIndexHtml(this);\\n```\"","service":"cg-router","timestamp":"2023-08-09T06:04:50.455Z"}
 {"level":"debug","message":"Writing new file...","service":"file-service"}
 {"level":"debug","message":"File write successful","service":"file-service"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"error","message":"Error while reading file:Error: ENOENT: no such file or directory, open 'repos/Gordon-BP/taylor-test-repo/Taylor_Issue_69/index.html'","service":"file-service"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T08:25:56.573Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T08:26:21.737Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T08:27:04.661Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T08:28:43.964Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T08:30:28.203Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T08:31:03.626Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T08:31:48.719Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T08:34:47.912Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T08:35:12.027Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T08:35:51.349Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T08:44:56.958Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T09:01:12.243Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T09:01:27.957Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T09:12:08.099Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T09:13:09.246Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T09:13:57.014Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T09:15:13.533Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T09:16:11.404Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T09:25:03.071Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T09:28:36.926Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Error running code: SyntaxError: Unexpected token 'this'","service":"vr-router","timestamp":"2023-08-10T09:32:23.164Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T09:32:23.165Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Error executing code: SyntaxError: Unexpected token 'this'","service":"vr-router","timestamp":"2023-08-10T09:32:23.163Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Error running code: ReferenceError: __context__ is not defined","service":"vr-router","timestamp":"2023-08-10T09:33:04.946Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T09:33:04.947Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Error executing code: ReferenceError: __context__ is not defined","service":"vr-router","timestamp":"2023-08-10T09:33:04.945Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Error running code: ReferenceError: __context__ is not defined","service":"vr-router","timestamp":"2023-08-10T09:33:17.158Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T09:33:17.159Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Error executing code: ReferenceError: __context__ is not defined","service":"vr-router","timestamp":"2023-08-10T09:33:17.158Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Error running code: ReferenceError: __context__ is not defined","service":"vr-router","timestamp":"2023-08-10T09:34:06.654Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T09:34:06.655Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Error executing code: ReferenceError: __context__ is not defined","service":"vr-router","timestamp":"2023-08-10T09:34:06.653Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Error running code: ReferenceError: __context__ is not defined","service":"vr-router","timestamp":"2023-08-10T09:34:35.018Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T09:34:35.019Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Error executing code: ReferenceError: __context__ is not defined","service":"vr-router","timestamp":"2023-08-10T09:34:35.016Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Error running code: SyntaxError: Unexpected token 'this'","service":"vr-router","timestamp":"2023-08-10T09:35:16.658Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T09:35:16.659Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Error executing code: SyntaxError: Unexpected token 'this'","service":"vr-router","timestamp":"2023-08-10T09:35:16.657Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Error running code: SyntaxError: await is only valid in async functions and the top level bodies of modules","service":"vr-router","timestamp":"2023-08-10T09:39:13.944Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T09:39:13.944Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Error executing code: SyntaxError: await is only valid in async functions and the top level bodies of modules","service":"vr-router","timestamp":"2023-08-10T09:39:13.941Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Error running code: TypeError: eval(...).call is not a function","service":"vr-router","timestamp":"2023-08-10T09:39:42.310Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Error running code: TypeError: eval(...).call is not a function","service":"vr-router","timestamp":"2023-08-10T09:40:04.591Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Error running code: TypeError: eval(...).call is not a function","service":"vr-router","timestamp":"2023-08-10T09:41:23.532Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T09:41:23.532Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Error executing code: TypeError: eval(...).call is not a function","service":"vr-router","timestamp":"2023-08-10T09:41:23.530Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T09:41:23.531Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T09:42:12.002Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T09:42:12.002Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T09:42:12.000Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T09:42:54.868Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T09:42:54.868Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T09:42:54.867Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T09:43:27.022Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T09:43:27.022Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T09:43:27.020Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T09:44:16.726Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T09:44:16.726Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T09:44:16.724Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T09:49:27.937Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T09:49:27.937Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T09:49:27.935Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T09:58:44.805Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T09:58:44.806Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T09:58:44.804Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T09:59:48.571Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T09:59:48.571Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T09:59:48.570Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T10:01:02.532Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T10:01:02.532Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T10:01:02.529Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T10:01:40.838Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T10:01:40.838Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T10:01:40.836Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T10:02:23.831Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T10:02:23.831Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T10:02:23.830Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T10:13:42.378Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T10:13:42.378Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T10:13:42.376Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T10:15:49.024Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T10:15:49.024Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T10:15:49.022Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T10:42:32.260Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T10:42:32.260Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T10:42:32.259Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T10:46:06.508Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T10:46:06.508Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T10:46:06.506Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T10:47:50.203Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T10:47:50.204Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T10:47:50.202Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T10:50:04.210Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T10:50:04.210Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T10:50:04.209Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T10:51:28.500Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T10:51:28.500Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T10:51:28.498Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T10:54:03.389Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T10:54:03.389Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T10:54:03.387Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T10:57:21.704Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T10:57:21.705Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T10:57:21.702Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T11:01:39.960Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T11:01:39.960Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T11:01:39.958Z"}
+{"level":"debug","message":"Writing new file...","service":"file-service"}
+{"level":"debug","message":"File repos/Gordon-BP/taylor-test-repo/Taylor_Issue_69/Gordon-BP/taylor-test-repo/Taylor_Issue_69/index.html does not exist, creating file...","service":"file-service"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T11:03:05.659Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T11:03:05.659Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T11:03:05.657Z"}
+{"level":"debug","message":"Writing new file...","service":"file-service"}
+{"level":"debug","message":"File repos/Gordon-BP/taylor-test-repo/Taylor_Issue_69/Gordon-BP/taylor-test-repo/Taylor_Issue_69/index.html does not exist, creating file...","service":"file-service"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T11:04:08.134Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T11:04:08.135Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T11:04:08.132Z"}
+{"level":"debug","message":"Writing new file...","service":"file-service"}
+{"level":"debug","message":"File repos/Gordon-BP/taylor-test-repo/Taylor_Issue_69/Gordon-BP/taylor-test-repo/Taylor_Issue_69/index.html does not exist, creating file...","service":"file-service"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T11:07:46.134Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T11:07:46.134Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T11:07:46.133Z"}
+{"level":"debug","message":"Writing new file...","service":"file-service"}
+{"level":"debug","message":"File write successful","service":"file-service"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T13:45:14.845Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T13:45:14.845Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T13:45:14.843Z"}
+{"level":"debug","message":"Writing new file...","service":"file-service"}
+{"level":"debug","message":"Preparing to add, commit, and push changes...","service":"github-service"}
+{"level":"debug","message":"File write successful","service":"file-service"}
+{"level":"debug","message":"Commit successful","service":"github-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Commit successful [object Object]","service":"vr-router","timestamp":"2023-08-10T13:45:14.912Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Error making PR: AxiosError: Request failed with status code 400}","service":"vr-router","timestamp":"2023-08-10T13:45:14.914Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T13:46:28.170Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T13:46:28.170Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T13:46:28.169Z"}
+{"level":"debug","message":"Writing new file...","service":"file-service"}
+{"level":"debug","message":"Preparing to add, commit, and push changes...","service":"github-service"}
+{"level":"debug","message":"File write successful","service":"file-service"}
+{"level":"debug","message":"Commit successful","service":"github-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Commit successful [object Object]","service":"vr-router","timestamp":"2023-08-10T13:46:29.819Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Error making PR: AxiosError: Request failed with status code 400}","service":"vr-router","timestamp":"2023-08-10T13:46:29.823Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T13:49:03.121Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T13:49:03.122Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T13:49:03.120Z"}
+{"level":"debug","message":"Writing new file...","service":"file-service"}
+{"level":"debug","message":"Preparing to add, commit, and push changes...","service":"github-service"}
+{"level":"debug","message":"File write successful","service":"file-service"}
+{"level":"debug","message":"Commit successful","service":"github-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Commit successful [object Object]","service":"vr-router","timestamp":"2023-08-10T13:49:04.754Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Error making PR: AxiosError: Request failed with status code 400}","service":"vr-router","timestamp":"2023-08-10T13:49:04.757Z"}
+{"level":"debug","message":"Fetching file...","service":"file-service"}
+{"level":"debug","message":"File read success","service":"file-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran successfully","service":"vr-router","timestamp":"2023-08-10T13:51:38.126Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Code ran let's goooooo","service":"vr-router","timestamp":"2023-08-10T13:51:38.126Z"}
+{"level":"\u001b[32minfo\u001b[39m","message":"index.html created successfully.","service":"vr-router","timestamp":"2023-08-10T13:51:38.124Z"}
+{"level":"debug","message":"Writing new file...","service":"file-service"}
+{"level":"debug","message":"Preparing to add, commit, and push changes...","service":"github-service"}
+{"level":"debug","message":"File write successful","service":"file-service"}
+{"level":"debug","message":"Commit successful","service":"github-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"Commit successful [object Object]","service":"vr-router","timestamp":"2023-08-10T13:51:39.287Z"}
+{"level":"debug","message":"Creating PR from Taylor_Issue_69 to main on Gordon-BP/taylor-test-repo...","service":"github-service"}
+{"level":"debug","message":"Successfully created pull request","service":"github-service"}
+{"level":"\u001b[32minfo\u001b[39m","message":"PR Successfully created: [object Object]","service":"vr-router","timestamp":"2023-08-10T13:51:41.899Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Error making PR: TypeError: Converting circular structure to JSON\n    --> starting at object with constructor 'ClientRequest'\n    |     property 'socket' -> object with constructor 'Socket'\n    --- property '_httpMessage' closes the circle}","service":"vr-router","timestamp":"2023-08-10T13:51:41.901Z"}

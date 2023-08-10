@@ -5,6 +5,7 @@ import { tg_router } from "./routes/task_route.js";
 import bodyParser from "body-parser";
 import { fs_router } from "./routes/file_routes.js";
 import { cg_router } from "./routes/code_gen_route.js";
+import { vr_router } from "./routes/verification_route.js";
 import GithubUtils from "./utils/github_utils.js";
 import { v4 as uuid } from "uuid";
 import winston from "winston";
@@ -101,6 +102,7 @@ class App {
     this.express.use("/app/v1/files", fs_router);
     this.express.use("/app/v1/task", tg_router);
     this.express.use("/app/v1/code", cg_router);
+    this.express.use("/app/v1/verify", vr_router)
     this.express.use("/docs", express.static("./docs"));
   }
 }

@@ -45,3 +45,30 @@
 {"level":"error","message":"Error while scanning directory tree","service":"file-service"}
 {"level":"\u001b[31merror\u001b[39m","message":"Code Gen Error TypeError: Converting circular structure to JSON\n    --> starting at object with constructor 'ClientRequest'\n    |     property 'socket' -> object with constructor 'Socket'\n    --- property '_httpMessage' closes the circle","service":"cg-router","timestamp":"2023-08-08T18:03:20.533Z"}
 {"level":"\u001b[31merror\u001b[39m","message":"Code Gen Error TypeError: Converting circular structure to JSON\n    --> starting at object with constructor 'ClientRequest'\n    |     property 'socket' -> object with constructor 'Socket'\n    --- property '_httpMessage' closes the circle","service":"cg-router","timestamp":"2023-08-08T18:12:20.967Z"}
+{"level":"error","message":"Error while reading file:Error: ENOENT: no such file or directory, open 'repos/Gordon-BP/taylor-test-repo/Taylor_Issue_69/index.html'","service":"file-service"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T08:25:56.573Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T08:26:21.737Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T08:27:04.661Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T08:28:43.964Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T08:30:28.203Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T08:31:03.626Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T08:31:48.719Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T08:34:47.912Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T08:35:12.027Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T08:35:51.349Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T08:44:56.958Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T09:01:12.243Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T09:01:27.957Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Linting issues found:[object Object]","service":"vr-router","timestamp":"2023-08-10T09:12:08.099Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Error executing code: SyntaxError: Unexpected token 'this'","service":"vr-router","timestamp":"2023-08-10T09:32:23.163Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Error executing code: ReferenceError: __context__ is not defined","service":"vr-router","timestamp":"2023-08-10T09:33:04.945Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Error executing code: ReferenceError: __context__ is not defined","service":"vr-router","timestamp":"2023-08-10T09:33:17.158Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Error executing code: ReferenceError: __context__ is not defined","service":"vr-router","timestamp":"2023-08-10T09:34:06.653Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Error executing code: ReferenceError: __context__ is not defined","service":"vr-router","timestamp":"2023-08-10T09:34:35.016Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Error executing code: SyntaxError: Unexpected token 'this'","service":"vr-router","timestamp":"2023-08-10T09:35:16.657Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Error executing code: SyntaxError: await is only valid in async functions and the top level bodies of modules","service":"vr-router","timestamp":"2023-08-10T09:39:13.941Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Error executing code: TypeError: eval(...).call is not a function","service":"vr-router","timestamp":"2023-08-10T09:41:23.530Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Error making PR: AxiosError: Request failed with status code 400}","service":"vr-router","timestamp":"2023-08-10T13:45:14.914Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Error making PR: AxiosError: Request failed with status code 400}","service":"vr-router","timestamp":"2023-08-10T13:46:29.823Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Error making PR: AxiosError: Request failed with status code 400}","service":"vr-router","timestamp":"2023-08-10T13:49:04.757Z"}
+{"level":"\u001b[31merror\u001b[39m","message":"Error making PR: TypeError: Converting circular structure to JSON\n    --> starting at object with constructor 'ClientRequest'\n    |     property 'socket' -> object with constructor 'Socket'\n    --- property '_httpMessage' closes the circle}","service":"vr-router","timestamp":"2023-08-10T13:51:41.901Z"}

@@ -16,6 +16,11 @@ App ID 364693
 - [ ] Get the last 10 or so logs (omit unnecessary info like taskID, service)
 - [ ] Return pass/fail
 
+**DevOps Things**
+- [ ] Dockerize app
+- [ ] Better webhook hosting than ngrok
+- [ ] Clean up your server-side logging
+
 ## Done ✅ Tasks
 **Github Utilities:** --Almost there!
 - [x] Clone repo
@@ -42,8 +47,7 @@ App ID 364693
 
 **Other Utilities**
 - [x] Stream task-specific logs to a task-specific file
-- [ ] Better webhook hosting than ngrok
-- [ ] Clean up your server-side logging
+- [x] Implement API Client service
 
 **Task Generation**
 - [~] Fetch info
@@ -70,13 +74,6 @@ App ID 364693
 ✅ DONE WITH CODE GENERATION ✅ (for now)
 
 > Do we _have_ to require the LLM to write Javascript? Like, the code it writes will only be consuming APIs. It'll write additional code in strings, but there's no set reason why it has to use JS/TS to call those APIs, right?
-
-
-- [X] **Client Service**
-> Very much need a proper client service to consume these APIs with. I can more clearly understand the nodes & flows, and having all the steps as API services is really helpful. However, one client is needed per issue for the following reasons:
-    1. Client-side logs will be automatically scoped to the issue/task ID
-    2. Client can listen for webhooks, too, when tasks are pending PR review, comment clarification, or GH automatic checks
-    3. Server-Client structure is better suited for having 100+ clients running at once.
 
 ## Other Notes 'N Stuff
 * Web research retriever

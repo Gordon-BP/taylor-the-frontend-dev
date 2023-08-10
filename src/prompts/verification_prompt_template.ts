@@ -29,7 +29,7 @@ async function load_prompts(): Promise<PromptArray> {
   return { prefix: PREFIX, instructions: formatInstructions, suffix: SUFFIX };
 }
 
-export default class CodePromptTemplate extends BaseChatPromptTemplate {
+export default class VerifyPromptTemplate extends BaseChatPromptTemplate {
   tools: DynamicStructuredTool[];
 
   constructor(args: {

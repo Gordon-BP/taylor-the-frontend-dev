@@ -14,14 +14,11 @@ import winston from "winston";
 import axios, { AxiosRequestConfig } from "axios";
 import { AgentExecutor, LLMSingleActionAgent } from "langchain/agents";
 import { LLMChain } from "langchain";
+import {readFiles, writeFiles, submit} from "../utils/fileTools.js"
 //TODO: Change to be configurable from env
 export const cg_router = express.Router();
 const endpoint = "http://127.0.0.1:3000/app/v1";
 
-interface FileData {
-  path: string;
-  data: string;
-}
 cg_router.use(bodyParser.json());
 const logger = winston.createLogger({
   level: "debug",
@@ -51,75 +48,6 @@ if (process.env.NODE_ENV !== "production") {
       ),
     }),
   );
-}
-/**
- * Retrieves the contents of multiple files specified by their file paths.
- * 
- * @param paths - An array of file paths.
- * @param taskId - The task ID for identification purposes.
- * @returns A promise that resolves with a string containing the concatenated contents of all the files.
- */
-function getFiles(paths: string[], taskId: string): Promise<string> {
-  let fileContent = "";
-  const promises = paths.map((filePath) => {
-    if (/\.\/repos/.test(filePath)) {
-      filePath = filePath.split("./repos")[1];
-    }
-    return axios.get(`${endpoint}/files/${filePath}`, {
-      data: {
-        taskId: taskId,
-      },
-    });
-  });
-  return new Promise((resolve, reject) => {
-    Promise.all(promises)
-      .then((responses) => {
-        const fileContents = responses.map((response) => response.data);
-        fileContent = fileContents.join("\n");
-        resolve(fileContent);
-      })
-      .catch((err) => {
-        logger.error(`Error fetching files: ${err}`);
-        reject(err);
-      });
-  });
-}
-function writeFiles(fileData: FileData[], taskId: string): string {
-  let resp = "";
-  const promises = fileData.map((file) => {
-    if (/\.\/repos/.test(file.path)) {
-      file.path = file.path.split("./repos")[1];
-    }
-    const owner = file.path.split("/")[0];
-    const repo = file.path.split("/")[1];
-    const branchName = file.path.split("/")[2];
-    const filePath = file.path.split("/").slice(3).join("/");
-    return axios.post(`${endpoint}/files/${filePath}`, {
-      params: {
-        owner: owner,
-        repo: repo,
-        branchName: branchName,
-      },
-      data: {
-        filePath: filePath,
-        data: file.data,
-        taskId: taskId,
-      },
-    });
-  });
-  Promise.all(promises)
-    .then((responses) => {
-      resp = `Files successfully written:\n${responses}`;
-    })
-    .catch((err) => {
-      logger.error(`Error writing files: ${err}`);
-      resp = `Error writing files: ${err}`;
-    });
-  return resp;
-}
-function submit(data: string, taskId: string): string {
-  const resp = writeFiles([{ path: "/tmp/tmp.js", data: data }], taskId);
-  return resp;
 }
 
 /**
@@ -163,17 +91,17 @@ cg_router.post(
             .describe("Your function that successfully resolves the task"),
           taskId: z.string().describe("Which task this call is for"),
         }),
-        func: async ({ data, taskId }) => submit(data, taskId),
+        func: async ({ data, taskId }) => submit(data, task),
         returnDirect: false,
       }),
       new DynamicStructuredTool({
-        name: "Get Files",
-        description: "Gets the data from each file in the provided list",
+        name: "Reads Files",
+        description: "Returns the data from each file in the provided list",
         schema: z.object({
           paths: z.array(z.string()),
           taskId: z.string(),
         }),
-        func: async ({ paths, taskId }) => getFiles(paths, taskId),
+        func: async ({ paths, taskId }) => readFiles(paths, taskId),
         returnDirect: false,
       }),
       new DynamicStructuredTool({
@@ -190,7 +118,7 @@ cg_router.post(
           ),
           taskId: z.string().describe("Which task this call is for"),
         }),
-        func: async ({ files, taskId }) => writeFiles(files, taskId),
+        func: async ({ files, taskId }) => writeFiles(files, task),
         returnDirect: false,
       }),
     ];

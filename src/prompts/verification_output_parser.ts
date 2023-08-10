@@ -1,7 +1,7 @@
 import { AgentActionOutputParser } from "langchain/agents";
 import { AgentAction, AgentFinish } from "langchain/schema";
 
-export default class CodeOutputParser extends AgentActionOutputParser {
+export default class VerifyOutputParser extends AgentActionOutputParser {
   lc_namespace = ["langchain", "agents", "custom_llm_agent_chat"];
 
   async parse(text: string): Promise<AgentAction | AgentFinish> {
