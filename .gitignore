@@ -1,5 +1,6 @@
 *.pem
 *.env
+*.log
 docs/
 repos/
 node_modules/
