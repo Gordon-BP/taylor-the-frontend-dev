@@ -1,15 +1,3 @@
-/**
- * Cleans and runs the code. Then assesses the local repo to determine task success.
- */
-//
-//Step 1: open code.js and verify that it has content
-
-//Step 2: use basic regex rules to cut out any markdown or
-//other text that could be leftover from the llm prompt
-
-//Step 3: Run the code and record any errors
-
-//Step 4: Update the task status
 import express from "express";
 import { Request, Response } from "express";
 import bodyParser from "body-parser";
@@ -17,14 +5,15 @@ import * as v from "../utils/validators.js";
 import { z } from "zod";
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import VerifyOutputParser from "../prompts/verification_output_parser.js";
-import VerifyPromptTemplate from "../prompts/verification_output_parser.js";
+import VerifyPromptTemplate from "../prompts/verification_prompt_template.js";
 import { DynamicStructuredTool } from "langchain/tools";
 import winston from "winston";
 import axios, { AxiosRequestConfig } from "axios";
 import { AgentExecutor, LLMSingleActionAgent } from "langchain/agents";
 import { LLMChain } from "langchain";
-import { open, mkdir, rm } from "node:fs/promises";
-import { spawn } from "child_process";
+import  * as eslint from "eslint";
+import CodeWrapper from "../utils/CodeWrapper.js"
+import {writeFile} from "node:fs/promises"
 const endpoint = "http://127.0.0.1:3000/app/v1";
 export const vr_router = express.Router();
 vr_router.use(bodyParser.json());
@@ -86,37 +75,83 @@ function getFiles(paths: string[], taskId: string): string {
     return fileContent;
   }
 
+  async function lintScript(filePath:string) {
+    const linter = new eslint.ESLint({
+      fix:true,
+      useEslintrc: false,
+      overrideConfig: {
+        extends: ["eslint:recommended"],
+        parserOptions: {
+            sourceType: "module",
+            ecmaVersion: "latest",
+        },
+        rules:{
+            "no-unused-vars":"off"
+        },
+        env: {
+            es2022: true,
+            node: true,
+        },
+    },
+    });
+
+    return await linter.lintFiles([filePath]);
+  }
 /**
  * ====================================
  *      API Routes
  * ====================================
  */
 vr_router.post(
-    "/verify",
+    "/",
+    v.validateReq([], ['filePath', "task"]),
     v.validateTask,
     async (req: Request, res: Response) => {
       const model = new ChatOpenAI({ temperature: 0.15 });
-      const { task } = req.body;
-      const {owner, repo, baseTaskDescription, nextTaskDescription} = task
-      const nextTask = task.nextTaskDescription;
-      if (!nextTask || nextTask.length == 0) {
+      const {task, filePath} = req.body
+      const {owner, repo, branchName, id, baseTaskDescription, nextTaskDescription} = task
+      if (!nextTaskDescription || nextTaskDescription.length == 0) {
         res
           .status(400)
           .json({ message: "Invalid request- task is without description!" });
       }
-      const treeConfig: AxiosRequestConfig = {
-        method: "POST",
-        url: `${endpoint}/files/${task.owner}/${task.repo}/${task.branchName}/tree`,
-        params: {
-          owner: task.owner,
-          repo: task.repo,
-          branchName: task.branchName,
-        },
-        data: {
-          taskId: task.id,
-        },
-      };
-      const treeResponse = await axios(treeConfig);
+      console.log("Step 1: open code.js and verify that it has content")
+      const readFileConfig:AxiosRequestConfig={
+        method:'GET',
+        url:`${endpoint}/files/${owner}/${repo}/${branchName}/code.js`,
+        //params:{owner, repo, branchName, filePath},
+        data:{taskId:id}
+      }
+      var codeFile = await axios(readFileConfig)
+      if(!codeFile.data.data || codeFile.data.data.length == 0){
+        res.status(500).json({message:`No code in code.js to verify`})
+      }
+     // console.log("Step 2: Import our fileTools so the code might actually work")
+     // const codeString= `import { readFiles, writeFiles } from "../../../../src/utils/fileTools.js"\n` + codeFile.data.data
+     // await writeFile(`./repos/${owner}/${repo}/${branchName}/code.js`, codeString)
+     // console.log("Step 3: Lint the code, fix what we can, and record any errors")
+     // const lintResult = await lintScript(`./repos/${owner}/${repo}/${branchName}/code.js`);
+     // lintResult.forEach(result =>{
+     //   if (result.errorCount > 0) {
+     //       logger.error(`Linting issues found:${lintResult}`);
+     //       res.status(700).json({message:`Linting issues found in code.js`, data:lintResult})
+     //     }
+     // })
+      console.log("Step 4: Run the code")
+      
+
+    const generator = new CodeWrapper(codeFile.data.data, task);
+    const msg = await generator.executeCode()
+    if(msg){
+            logger.info(msg)
+            logger.info("Code ran let's goooooo")
+           // res.status(200).json({message:"Code ran successfully lets goooooo"})
+        }
+    else{
+            logger.info(`Code failed`)
+            res.status(400).json({message:`Code failed`})
+        }
+
       const verifyTools = [
         new DynamicStructuredTool({
           name: "Get Files",
@@ -157,13 +192,11 @@ vr_router.post(
         maxIterations: 4, //TODO: Make this configurable from env
         verbose: true,
       });
-      executor
+    /**   executor
         .call([
           { previousCode: "None available- you are on your first attempt!" },
           { codeError: "None available- you are on your first attempt!" },
           { recentLogs: "None available- you are on your first attempt!" },
-          { description: nextTask },
-          { tree: treeResponse.data },
           { feedback: "None available- you are on your first attempt!" },
         ])
         .then((response) => {
@@ -176,7 +209,47 @@ vr_router.post(
         .catch((err) => {
           logger.error(`Code Gen Error ${err}`);
           res.status(500).json({ message: `Code Gen Error ${err}` });
-        });
-    },
+        });*/
+    try{
+        const commitConfig:AxiosRequestConfig={
+            method:'POST',
+            url:`${endpoint}/github/${owner}/${repo}/${branchName}/commit`,
+            headers:{
+                "Content-Type":"application/json"
+            },
+            params: {owner, repo, branchName},
+            data:{message:`Addressing ${id}`,taskId:id}
+        }
+        axios(commitConfig).then(msg=>{
+            logger.info(`Commit successful ${msg}`)
+            const prConfig:AxiosRequestConfig={
+                method:'POST',
+                url:`${endpoint}/github/${owner}/${repo}/${branchName}/createPR`,
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                params:{owner, repo, branchName},
+                data:{
+                    title:`Fix for Issue ${task.baseIssue}`,
+                    body:task.nextTaskDescription,
+                    taskId:id,
+                    baseBranch:task.baseBranch,
+                    num:task.baseIssue}
+            }
+            axios(prConfig).then(msg=>{
+                logger.info(`PR Successfully created: ${msg.data.message}`)
+                res.status(200).json({message:msg.data.message})
+            }).catch(err=>{
+                logger.error(`Error making PR: ${err}}`)
+                res.status(500).json({message:`Error making PR: ${err}`})
+            })
+            
+        }).catch(err=>{
+            logger.error(`Error committing changes${err}`)
+        })
+    }catch(err){
+        logger.error(`Error happened somewhere: ${err}`)
+    }
+    }
   );
   
