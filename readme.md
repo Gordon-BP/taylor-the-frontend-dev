@@ -31,14 +31,16 @@ Some things it can do:
 - [ ] Self-verification agent that doesn't rubber-stamp approve everything
 - [ ] Return lint errors back to the code generator without failing the task
 - [ ] Set up logging on a per-task basis to add environmental data to each chain
-- [ ] Vector database based off of the repo code + library documentation
+- [ ] Vector database based off of the repo code + library documentation + logs
 - [ ] Skills library and retriever (like Voyager)
 - [ ] Move model configs from hardcoded to .env vars
 - [ ] Meet with a skilled backend JS dev to talk about better ways to structure the app to reduce duplicate code
 
 ## Things saved for version 0.3 and onwards
 - [ ] Dockerized app
+- [ ] Proper virtualization to run tasks as little nodes
 - [ ] Unit tests for each route
+- [ ] Record chain traces with (langsmith)[https://blog.langchain.dev/announcing-langsmith/]
 - [ ] Internet search retriever (maybe)
 - [ ] Experiment with other models for each task
     - I'm _super_ interested in trying out code-specific LLMs like StarCoder, and that 2.7B Ghostwriter.
