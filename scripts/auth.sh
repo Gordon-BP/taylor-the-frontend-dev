@@ -9,8 +9,7 @@ if [[ "${GITHUB_APP_ID}" != "" ]] && [[ -e "${GITHUB_APP_PRIVATE_KEY}" ]] ; then
     #echo $APP_TOKEN_URL
     # Now POST to the installation token URL to generate a new access token we can use to with with the gh and hub command lines
     export GITHUB_TOKEN=$( curl -s -X POST -H "Authorization: Bearer ${GITHUB_JWT}" -H "Accept: application/vnd.github.v3+json" ${APP_TOKEN_URL} | jq -r '.token' > .myToken.txt )
-    gh auth login --with-token < .myToken.txt
     # Configure gh as an auth provider for git so we can use git push / pull / fetch with github.com URLs
-    #gh auth login --with-token< mytoken.txt
+    gh auth login --with-token< .myToken.txt
     echo Successfully authorized as app
 fi

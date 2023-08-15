@@ -1,0 +1,191 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: File System API
+
+paths:
+  /status:
+    get:
+      summary: Status route
+      responses:
+        '200':
+          description: Status OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /{owner}/{repo}/{branchName}/writeFile:
+    post:
+      summary: Overwrite or create a file
+      parameters:
+        - name: owner
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: branchName
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                filePath:
+                  type: string
+                data:
+                  type: string
+                taskId:
+                  type: string
+      responses:
+        '200':
+          description: File write successful
+        '500':
+          description: Error writing to file
+
+  /{owner}/{repo}/{branchName}/deleteFile:
+    delete:
+      summary: Delete a file
+      parameters:
+        - name: owner
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: branchName
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                filePath:
+                  type: string
+                taskId:
+                  type: string
+      responses:
+        '200':
+          description: File successfully deleted
+        '500':
+          description: Error deleting file
+
+  /{owner}/{repo}/{branchName}/tree:
+    post:
+      summary: Get the repo branch as a directory tree
+      parameters:
+        - name: owner
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: branchName
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                taskId:
+                  type: string
+      responses:
+        '200':
+          description: Tree successfully generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/MyTree'
+        '500':
+          description: Error while running tree
+
+  /{owner}/{repo}/{branchName}/{filePath}:
+    get:
+      summary: Read a file
+      parameters:
+        - name: owner
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: branchName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: filePath
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                taskId:
+                  type: string
+      responses:
+        '200':
+          description: File read success
+        '500':
+          description: Error while reading file
+
+components:
+  schemas:
+    MyTree:
+      type: object
+      properties:
+        name:
+          type: string
+        relativePath:
+          type: string
+        type:
+          type: string
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/MyTree'
