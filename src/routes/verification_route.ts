@@ -10,7 +10,7 @@ import { DynamicStructuredTool } from "langchain/tools";
 import winston from "winston";
 import axios, { AxiosRequestConfig } from "axios";
 import { AgentExecutor, LLMSingleActionAgent } from "langchain/agents";
-import { LLMChain } from "langchain";
+import { LLMChain } from "langchain/chains";
 import  * as eslint from "eslint";
 import CodeWrapper from "../utils/CodeWrapper.js"
 import {writeFile} from "node:fs/promises"

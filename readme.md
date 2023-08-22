@@ -28,27 +28,33 @@ Some things it can do:
 - [x] Commit and open a PR when the code generation is finished
 
 ## Things to come in version 0.2
+- [ ] Full OpenAPI Spec
 - [ ] Self-verification agent that doesn't rubber-stamp approve everything
 - [ ] Return lint errors back to the code generator without failing the task
 - [ ] Set up logging on a per-task basis to add environmental data to each chain
 - [ ] Vector database based off of the repo code + library documentation + logs
 - [ ] Skills library and retriever (like Voyager)
 - [ ] Move model configs from hardcoded to .env vars
-- [ ] Meet with a skilled backend JS dev to talk about better ways to structure the app to reduce duplicate code
+- [x] Meet with a skilled backend JS dev to talk about better ways to structure the app to reduce duplicate code
 
 ## Things saved for version 0.3 and onwards
-- [ ] Dockerized app
-- [ ] Proper virtualization to run tasks as little nodes
+- [ ] Dockerized server with new, isolated containers for each client (see (Dockerode)[https://github.com/apocas/dockerode])
 - [ ] Unit tests for each route
 - [ ] Record chain traces with (langsmith)[https://blog.langchain.dev/announcing-langsmith/]
 - [ ] Internet search retriever (maybe)
 - [ ] Experiment with other models for each task
     - I'm _super_ interested in trying out code-specific LLMs like StarCoder, and that 2.7B Ghostwriter.
+    - Additionally, since task completion isn't time-sensitive we can look into MLC applications like (WebLLM)[https://github.com/mlc-ai/web-llm] to run these models on less crazy hardware.
 - [ ] Documentation about how to get your own Taylor server up and running
 - [ ] Extreme dogfooding- add Taylor to this repo and have the agent improve its own code
 
 
 ## Other Notes 'N Stuff
+* Today I learned about schema-first API design. It makes a lot of sense: plan your API first, then execute it. I especially like the OpenAPI way of defining schemas. While it is a TON of work up front, the cool things are:
+    * Docs are auto-generated
+    * Testing is super easy thanks to a web UI
+    * Tools exist to implement it in other languages just from the schema (in case I want to use some of python langchain's features)
+
 > Do we _have_ to require the LLM to write Javascript? Like, the code it writes will only be consuming APIs. It'll write additional code in strings, but there's no set reason why it has to use JS/TS to call those APIs, right?
 * Web research retriever
     - will need to implement on your own with https://serpapi.com/integrations/node and LLM chain

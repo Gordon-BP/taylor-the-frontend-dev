@@ -5,6 +5,7 @@ import * as v from "../utils/validators.js";
 import winston from "winston";
 import bodyParser from "body-parser";
 import path from "node:path";
+import Task from "../utils/Task.js";
 /**
  * Github routes!
  * @module gh_api
@@ -46,17 +47,14 @@ gh_router.get("/status", (req: Request, res: Response) => {
  * @function
  * @memberof module:gh_api
  * @inner
- * @param {string} owner - the Github repo's owner
- * @param {string} repo - the repo name
- * @param {string} baseBranch - the base branch (typically main or master)
- * @param {string} taskId - which task this process is for
+ * @param {Task} task - the task object
  */
 gh_router.post(
   "/clone",
-  v.validateReq([], ["owner", "repo", "baseBranch", "taskId"]),
+  v.validateTask,
   v.validateTaskId,
   async (req: Request, res: Response) => {
-    const { owner, repo, baseBranch } = req.body;
+    const { owner, repo, baseBranch } = req.body.task;
     const github = new GithubUtils();
     const p = path.join("./repos", owner, repo, baseBranch);
     logger.debug(`Cloning Repo ${owner}/${repo}`);

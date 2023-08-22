@@ -13,7 +13,7 @@ import { DynamicStructuredTool } from "langchain/tools";
 import winston from "winston";
 import axios, { AxiosRequestConfig } from "axios";
 import { AgentExecutor, LLMSingleActionAgent } from "langchain/agents";
-import { LLMChain } from "langchain";
+import { LLMChain } from "langchain/chains";
 import {readFiles, writeFiles, submit} from "../utils/fileTools.js"
 //TODO: Change to be configurable from env
 export const cg_router = express.Router();

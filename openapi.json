@@ -1,0 +1,196 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Code Voyager API",
+    "description": "The server-side API for the code voyager agent",
+    "contact": {
+      "name": "Gordy"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "http://github.com/gruntjs/grunt/blob/master/LICENSE-MIT"
+    },
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Development server"
+    }
+  ],
+  "paths": {
+    "/hook": {
+      "/hook": {
+        "post": {
+          "summary": "Handle webhook",
+          "responses": {
+            "$ref": "#/components/responses"
+          },
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "action": {
+                      "type": "string"
+                    },
+                    "issue": {
+                      "type": "object"
+                    },
+                    "pull_request": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Task": {
+        "type": "object",
+        "required": [
+          "baseBranch",
+          "baseIssue",
+          "baseTaskDescription",
+          "branchName",
+          "id",
+          "nextTaskDescription",
+          "owner",
+          "pastTasks",
+          "repo",
+          "started_at",
+          "status"
+        ],
+        "properties": {
+          "baseBranch": {
+            "type": "string",
+            "example": "main"
+          },
+          "baseIssue": {
+            "type": "integer",
+            "example": "4"
+          },
+          "baseTaskDescription": {
+            "type": "string",
+            "example": "Update the readme file to add the contributors' names"
+          },
+          "branchName": {
+            "type": "string",
+            "example": "Issue_4_Fix"
+          },
+          "id": {
+            "type": "string",
+            "example": "8bdbfe1d-5523-4769-8e21-a07386a6b737"
+          },
+          "logger": {
+            "type": "object",
+            "example": "a winston.logger() object"
+          },
+          "nextTaskDescription": {
+            "type": "string",
+            "example": "Find the contributors' names by opening the file ./contributors.md"
+          },
+          "owner": {
+            "type": "string",
+            "example": "Gordon-BP"
+          },
+          "pastTasks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "repo": {
+            "type": "string",
+            "example": "my-test-repo"
+          },
+          "started_at": {
+            "type": "string",
+            "example": "2023-08-01"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "pending",
+              "in progress",
+              "passed",
+              "failed"
+            ],
+            "example": "in progress"
+          }
+        }
+      },
+      "ResponseMsg": {
+        "#ref": "ResponseMsg.json"
+      }
+    },
+    "responses": {
+      "responses": {
+        "Success": {
+          "description": "Response for operation successful",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  },
+                  "data": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                },
+                "required": [
+                  "message"
+                ],
+                "example": {
+                  "message": "Success",
+                  "data": {
+                    "field": "value"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "BadRequest": {
+          "description": "Bad request error",
+          "content": {
+            "application/json": {
+              "example": {
+                "error": {
+                  "code": "400",
+                  "message": "Bad request",
+                  "details": "The request data is invalid."
+                }
+              }
+            }
+          }
+        },
+        "InternalServerError": {
+          "description": "Internal server error",
+          "content": {
+            "application/json": {
+              "example": {
+                "error": {
+                  "code": "500",
+                  "message": "Internal server error",
+                  "details": "An unexpected error occurred on the server."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
