@@ -49,6 +49,271 @@
           }
         }
       }
+    },
+    "/github/branch": {
+      "post": {
+        "summary": "Create new branch",
+        "description": "Makes a new branch on a local GitHub repo.",
+        "operationId": "createBranch",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Task"
+              }
+            }
+          }
+        },
+        "responses": {
+          "$ref": "#/components/responses"
+        }
+      }
+    },
+    "/github/clone": {
+      "post": {
+        "summary": "Clone Github repo",
+        "description": "Clones a Github repo to the bot's directory.",
+        "operationId": "cloneRepo",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Task"
+              }
+            }
+          }
+        },
+        "responses": {
+          "$ref": "#/components/responses"
+        }
+      }
+    },
+    "/github/commit": {
+      "post": {
+        "summary": "Stage, commit, and push changes",
+        "description": "Stages, commits, and pushes changes to the remote branch.",
+        "operationId": "commitChanges",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string",
+                    "description": "The commit message"
+                  },
+                  "task": {
+                    "$ref": "#/components/schemas/Task"
+                  }
+                },
+                "required": [
+                  "message",
+                  "task"
+                ],
+                "example": {
+                  "message": "Commit message",
+                  "task": {
+                    "$ref": "#/components/schemas/Task"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "$ref": "#/components/responses"
+        }
+      }
+    },
+    "/github/createPR": {
+      "post": {
+        "summary": "Create new pull request",
+        "description": "Creates a new pull request.",
+        "operationId": "createPullRequest",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "description": "The PR title"
+                },
+                "body": {
+                  "type": "string",
+                  "description": "The PR body/description"
+                },
+                "task": {
+                  "$ref": "#/components/schemas/Task"
+                }
+              },
+              "required": [
+                "title",
+                "body",
+                "task"
+              ],
+              "example": {
+                "title": "New Pull Request",
+                "body": "This is a new pull request",
+                "task": {
+                  "$ref": "#/components/schemas/Task"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "$ref": "#/components/responses"
+        }
+      }
+    },
+    "/github/status": {
+      "get": {
+        "summary": "Get status",
+        "description": "Returns the status of the server.",
+        "responses": {
+          "$ref": "#/components/responses"
+        }
+      }
+    },
+    "/files/deleteFile": {
+      "/deleteFile": {
+        "delete": {
+          "summary": "Deletes a file",
+          "tags": [
+            "File System Utilities"
+          ],
+          "parameters": [
+            {
+              "name": "filePath",
+              "in": "formData",
+              "required": true,
+              "type": "string",
+              "description": "Path to the file to be deleted."
+            },
+            {
+              "name": "task",
+              "in": "formData",
+              "required": true,
+              "description": "The task for which this process is performed.",
+              "schema": {
+                "$ref": "#/components/schemas/Task"
+              }
+            }
+          ],
+          "responses": {
+            "$ref": "#/components/responses"
+          }
+        }
+      }
+    },
+    "/files/getFile/{filePath}": {
+      "/getFile/{filePath}": {
+        "get": {
+          "summary": "Reads a file",
+          "tags": [
+            "File System Utilities"
+          ],
+          "parameters": [
+            {
+              "name": "filePath",
+              "in": "path",
+              "required": true,
+              "type": "string",
+              "description": "Path to the file to be read."
+            },
+            {
+              "name": "task",
+              "in": "formData",
+              "required": true,
+              "description": "The task for which this process is performed.",
+              "schema": {
+                "$ref": "#/components/schemas/Task"
+              }
+            }
+          ],
+          "responses": {
+            "$ref": "#/components/responses"
+          }
+        }
+      }
+    },
+    "/files/status": {
+      "/status": {
+        "get": {
+          "summary": "Status route",
+          "responses": {
+            "$ref": "#/components/responses"
+          }
+        }
+      }
+    },
+    "/files/tree": {
+      "/tree": {
+        "post": {
+          "summary": "Get the repo branch as a directory tree object powered by dree.",
+          "tags": [
+            "File System Utilities"
+          ],
+          "parameters": [
+            {
+              "name": "task",
+              "in": "formData",
+              "required": true,
+              "description": "The task for which this process is performed.",
+              "schema": {
+                "$ref": "#/components/schemas/Task"
+              }
+            }
+          ],
+          "responses": {
+            "$ref": "#/components/responses"
+          }
+        }
+      }
+    },
+    "/files/writeFile": {
+      "/writeFile": {
+        "post": {
+          "summary": "Overwrites the file at filePath with the included data. Creates files and directories as needed.",
+          "tags": [
+            "File System Utilities"
+          ],
+          "parameters": [
+            {
+              "name": "filePath",
+              "in": "formData",
+              "required": true,
+              "type": "string",
+              "description": "Path to the file to be written or created."
+            },
+            {
+              "name": "data",
+              "in": "formData",
+              "required": true,
+              "type": "string",
+              "description": "The information to write to the file."
+            },
+            {
+              "name": "task",
+              "in": "formData",
+              "required": true,
+              "description": "The task for which this process is performed.",
+              "schema": {
+                "$ref": "#/components/schemas/Task"
+              }
+            }
+          ],
+          "responses": {
+            "$ref": "#/components/responses"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -129,7 +394,25 @@
         }
       },
       "ResponseMsg": {
-        "#ref": "ResponseMsg.json"
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "example": {
+          "message": "Success",
+          "data": {
+            "field": "value"
+          }
+        }
       }
     },
     "responses": {
@@ -139,25 +422,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "message": {
-                    "type": "string"
-                  },
-                  "data": {
-                    "type": "object",
-                    "additionalProperties": true
-                  }
-                },
-                "required": [
-                  "message"
-                ],
-                "example": {
-                  "message": "Success",
-                  "data": {
-                    "field": "value"
-                  }
-                }
+                "$ref": "#/components/schemas/ResponseMsg"
               }
             }
           }

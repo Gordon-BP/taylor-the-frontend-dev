@@ -91,17 +91,14 @@ gh_router.post(
  * @function
  * @memberof module:gh_api
  * @inner
- * @param {string} baseBranch - the base branch (typically main or master)
- * @param {string} branchName - name for the new branch
- * @param {string} taskId - which task this process is for
+ * @param {Task} task - the task object
  */
 gh_router.post(
-  "/:owner/:repo/branch",
-  v.validateReq(["owner", "repo"], ["branchName", "baseBranch", "taskId"]),
+  "/branch",
+  v.validateTask,
   v.validateTaskId,
   async (req: Request, res: Response) => {
-    const { owner, repo } = req.params;
-    const { branchName, baseBranch, taskId } = req.body;
+    const { owner, repo, branchName, baseBranch, taskId } = req.body.task;
     const github = new GithubUtils();
     const p = path.join("./repos", owner, repo, branchName);
     logger.debug(`Creating new branch ${branchName} on ${owner}/${repo}`);
@@ -139,15 +136,15 @@ gh_router.post(
  * @memberof module:gh_api
  * @inner
  * @param {string} message - the commit message
- * @param {string} taskId - which task this process is for
+ * @param {Task} task - which task this process is for
  */
 gh_router.post(
-  "/:owner/:repo/:branchName/commit",
-  v.validateReq(["owner", "repo", "branchName"], ["message", "taskId"]),
+  "/commit",
+  v.validateReq([], ["message", "task"]),
   v.validateTaskId,
   async (req: Request, res: Response) => {
-    const { owner, repo, branchName } = req.params;
-    const { message, taskId } = req.body;
+    const { owner, repo, branchName, id } = req.body.task;
+    const message = req.body.message;
     const github = new GithubUtils();
     const p = path.join("./repos", owner, repo, branchName);
     logger.debug("Preparing to add, commit, and push changes...");
@@ -158,7 +155,7 @@ gh_router.post(
         branchName: branchName,
         dir: p,
         message: message,
-        taskId: taskId,
+        taskId: id,
       })
       .then((result) => {
         if (result == true) {
@@ -187,16 +184,14 @@ gh_router.post(
  * @function
  * @memberof module:gh_api
  * @inner
- * @param {string} num - the issue number
- * @param {string} taskId - which task this process is for
+ * @param {Task} task - the task object
  */
 gh_router.get(
   "/:owner/:repo/issue",
-  v.validateReq(["owner", "repo", "num"], ["num", "taskId"]),
+  v.validateTask,
   v.validateTaskId,
   async (req: Request, res: Response) => {
-    const { owner, repo } = req.params;
-    const { num } = req.body;
+    const { owner, repo, num } = req.body.task
     const github = new GithubUtils();
     logger.debug(`Fetching issue ${num} from ${owner}/${repo}`);
     await github
@@ -229,26 +224,24 @@ gh_router.get(
 );
 /**
  * Creates a new pull request
- * @name post/commit
+ * @name post/createPR
  * @function
  * @memberof module:gh_api
  * @inner
  * @param {string} title - the PR title
  * @param {string} body - the PR body/description
- * @param {string} baseBranch - the base branch name
- * @param {string} num - the issue number which this PR fixes
- * @param {string} taskId - which task this process is for
+ * @param {Task} task - the task object
  */
 gh_router.post(
-  "/:owner/:repo/:branchName/createPR",
+  "/createPR",
   v.validateReq(
-    ["owner", "repo", "branchName"],
-    ["title", "body", "taskId", "baseBranch", "num"],
+    [],
+    ["title", "body", "task"],
   ),
   v.validateTaskId,
   async (req: Request, res: Response) => {
-    const { owner, repo, branchName } = req.params;
-    const { title, body, baseBranch, num, taskId } = req.body;
+    const { owner, repo, branchName, baseBranch, num, id } = req.body.task;
+    const { title, body } = req.body;
     const github = new GithubUtils();
     logger.debug(
       `Creating PR from ${branchName} to ${baseBranch} on ${owner}/${repo}...`,
@@ -262,7 +255,7 @@ gh_router.post(
         title: title,
         body: body,
         num: num,
-        taskId: taskId,
+        taskId: id,
       })
       .then((success) => {
         if (success == true) {

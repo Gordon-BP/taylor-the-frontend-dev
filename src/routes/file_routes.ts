@@ -77,17 +77,17 @@ fs_router.get("/status", (req: Request, res: Response) => {
  * @inner
  * @param {string} filePath - where the file is to be written or created
  * @param {string} data - the information to write to the file
- * @param {string} taskId - which task this process is for
+ * @param {Task} task - which task this process is for
  */
 fs_router.post(
-  "/:owner/:repo/:branchName/writeFile",
+  "/writeFile",
   v.validateReq(
-    ["owner", "repo", "branchName"],
-    ["filePath", "data", "taskId"],
+    [],
+    ["filePath", "data", "task"],
   ),
   v.validateTaskId,
   async (req: Request, res: Response) => {
-    const { owner, repo, branchName } = req.params;
+    const { owner, repo, branchName, id } = req.body.task;
     const { filePath, data } = req.body;
     const p = path.join("./repos", owner, repo, branchName, filePath);
     logger.debug("Writing new file...");
@@ -118,14 +118,14 @@ fs_router.post(
  * @memberof module:fs_utils
  * @inner
  * @param {string} filePath - where the file is to be written or created
- * @param {string} taskId - which task this process is for
+ * @param {Task} task - which task this process is for
  */
 fs_router.delete(
-  "/:owner/:repo/:branchName/deleteFile",
-  v.validateReq(["owner", "repo", "branchName"], ["filePath", "taskId"]),
+  "/deleteFile",
+  v.validateReq([], ["filePath", "task"]),
   v.validateTaskId,
   (req: Request, res: Response) => {
-    const { owner, repo, branchName } = req.params;
+    const { owner, repo, branchName, id } = req.body.task;
     const { filePath } = req.body;
     const p = path.join("./repos", owner, repo, branchName, filePath);
     logger.debug("Deleting file..");
@@ -158,14 +158,14 @@ fs_router.delete(
  * @function
  * @memberof module:fs_utils
  * @inner
- * @param {string} taskId - which task this process is for
+ * @param {Task} task - which task this process is for
  */
 fs_router.post(
-  "/:owner/:repo/:branchName/tree",
-  v.validateReq(["owner", "repo", "branchName"], ["taskId"]),
+  "/tree",
+  v.validateReq([], ["taskId"]),
   v.validateTaskId,
   async (req: Request, res: Response) => {
-    const { owner, repo, branchName } = req.params;
+    const { owner, repo, branchName } = req.body.task;
     const p = path.join("./repos", owner, repo, branchName);
     logger.debug("Creating directory tree...");
     pkg
@@ -200,19 +200,19 @@ fs_router.post(
 );
 /**
  * Reads a file
- * TODO: Add validation middleware
  * @name get/file
  * @function
  * @memberof module:fs_utils
  * @inner
- * @param {string} taskId - which task this process is for
+ * @param {Task} task - which task this process is for
  */
 fs_router.get(
-  "/:owner/:repo/:branchName/:filePath",
-  v.validateReq(["owner", "repo", "branchName", "filePath"], ["taskId"]),
+  "/getFile/:filePath",
+  v.validateReq(["filePath"], ["task"]),
   v.validateTaskId,
   async (req: Request, res: Response) => {
-    const { owner, repo, branchName, filePath } = req.params;
+    const { filePath } = req.params;
+    const {owner, repo, branchName} = req.body.task
     const p = path.join("./repos", owner, repo, branchName, filePath);
     logger.debug("Fetching file...");
     try {
